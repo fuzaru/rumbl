@@ -1,0 +1,55 @@
+<Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
+  <.header>
+    My Videos
+    <:actions>
+      <.button navigate={~p"/videos/new"}>Add Video</.button>
+    </:actions>
+  </.header>
+
+  <div class="overflow-x-auto rounded-box border border-base-300 bg-base-100 shadow-sm">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Category</th>
+          <th>Added</th>
+          <th class="w-44">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="videos" phx-update="stream">
+        <tr class="hidden only:table-row">
+          <td colspan="4" class="text-center text-base-content/70 py-8">No videos yet</td>
+        </tr>
+
+        <tr :for={{id, video} <- @streams.videos} id={id} class="hover">
+          <td class="font-medium">{video.title}</td>
+          <td>{if(video.category, do: video.category.name, else: "-")}</td>
+          <td>{Calendar.strftime(video.inserted_at, "%b %d, %Y")}</td>
+          <td>
+            <div class="flex gap-3 text-sm">
+              <.link navigate={~p"/watch/#{video}"} class="link link-hover">Watch</.link>
+              <.link navigate={~p"/videos/#{video}"} class="link link-hover">View</.link>
+              <.link navigate={~p"/videos/#{video}/edit"} class="link link-hover">Edit</.link>
+              <button
+                type="button"
+                phx-click="delete"
+                phx-value-id={video.slug}
+                data-confirm="Delete this video?"
+                class="link link-hover text-error"
+              >
+                Delete
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p :if={@videos_empty?} class="text-center text-base-content/70">
+    You haven't added any videos yet.
+    <.link navigate={~p"/videos/new"} class="link link-hover text-brand">
+      Add your first video
+    </.link>
+  </p>
+</Layouts.app>

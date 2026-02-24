@@ -1,0 +1,33 @@
+<Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
+  <.header>
+    {@video.title}
+    <:subtitle>
+      Added by {@video.user.name}
+      <%= if @video.category do %>
+        in {@video.category.name}
+      <% end %>
+    </:subtitle>
+    <:actions>
+      <.button navigate={~p"/watch/#{@video}"}>Watch Video</.button>
+    </:actions>
+  </.header>
+
+  <.list>
+    <:item title="Title">{@video.title}</:item>
+    <:item title="URL">
+      <a href={@video.url} target="_blank" class="link link-hover text-brand">{@video.url}</a>
+    </:item>
+    <:item title="Description">{@video.description || "No description"}</:item>
+    <:item title="Category">{if(@video.category, do: @video.category.name, else: "None")}</:item>
+  </.list>
+
+  <div class="mt-8 flex gap-4">
+    <.back navigate={~p"/videos"}>Back to videos</.back>
+    <.link
+      :if={@current_user && @current_user.id == @video.user_id}
+      navigate={~p"/videos/#{@video}/edit"}
+    >
+      <.button>Edit Video</.button>
+    </.link>
+  </div>
+</Layouts.app>
