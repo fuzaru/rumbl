@@ -28,9 +28,7 @@ defmodule RumblWeb.Router do
     delete "/sessions", SessionController, :delete
 
     # Video routes
-    resources "/videos", VideoController, except [:index]
-
-    live_session :require_authenticated_user,
+    resources "/videos", VideoController
 
     # Watch video (public)
     get "/watch/:id", VideoController, :watch
