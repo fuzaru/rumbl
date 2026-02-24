@@ -70,17 +70,4 @@ defmodule RumblWeb.VideoController do
     |> put_flash(:info, "Video deleted successfully.")
     |> redirect(to: ~p"/videos")
   end
-
-  def watch(conn, %{"id" => id}) do
-    video = Multimedia.get_video!(id)
-    annotations = Multimedia.list_annotations(video)
-
-    # Generate token for WebSocket auth
-    user_token =
-      if conn.assigns.current_user do
-        Phoenix.Token.sign(conn, "user socket", conn.assigns.current_user.id)
-      end
-
-    render(conn, :watch, video: video, annotations: annotations, user_token: user_token)
-  end
 end

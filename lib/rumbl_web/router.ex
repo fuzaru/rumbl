@@ -36,10 +36,8 @@ defmodule RumblWeb.Router do
 
     live_session :current_user, on_mount: [{RumblWeb.UserLiveAuth, :mount_current_user}] do
       live "/videos/:id", VideoLive.Show, :show
+      live "/watch/:id", VideoLive.Watch, :show
     end
-
-    # Watch video (public)
-    get "/watch/:id", VideoController, :watch
   end
 
   # Other scopes may use custom stacks.
