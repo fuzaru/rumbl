@@ -3,6 +3,6 @@ defmodule RumblWeb.PageControllerTest do
 
   test "GET /", %{conn: conn} do
     conn = get(conn, ~p"/")
-    assert html_response(conn, 200) =~ "Welcome to Rumbl"
+    assert html_response(conn, 200) =~ "Let's get ready to Rumbl!"
   end
 end
