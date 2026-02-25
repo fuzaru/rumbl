@@ -18,8 +18,6 @@ defmodule RumblWeb.Router do
   scope "/", RumblWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
-
     # Session routes
     resources "/sessions", SessionController, only: [:create]
     delete "/sessions", SessionController, :delete
@@ -34,6 +32,9 @@ defmodule RumblWeb.Router do
 
     ## Live Routes (current_user)
     live_session :current_user, on_mount: [{RumblWeb.UserLiveAuth, :mount_current_user}] do
+      # home
+      live "/", PageLive.Home, :home
+
       # sessions
       live "/sessions/new", SessionLive.New, :new
 
