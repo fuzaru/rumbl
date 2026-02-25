@@ -1,0 +1,22 @@
+<Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
+  <.header>
+    Log In
+    <:subtitle>Welcome back to Rumbl!</:subtitle>
+  </.header>
+
+  <.form for={@form} id="session-form" action={~p"/sessions"} method="post">
+    <.input field={@form[:username]} type="text" label="Username" required />
+    <.input field={@form[:password]} type="password" label="Password" required />
+
+    <div class="mt-6">
+      <.button>Log In</.button>
+    </div>
+  </.form>
+
+  <p class="mt-4 text-sm text-gray-600">
+    Don't have an account?
+    <.link navigate={~p"/users/new"} class="font-semibold text-brand hover:underline">
+      Register
+    </.link>
+  </p>
+</Layouts.app>
