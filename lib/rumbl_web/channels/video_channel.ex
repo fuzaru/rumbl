@@ -4,16 +4,15 @@ defmodule RumblWeb.VideoChannel do
   alias Rumbl.{Accounts, Multimedia}
 
   @impl true
-  def join("video:" <> video_id, _params, socket) do
-    video_id = String.to_integer(video_id)
-    video = Multimedia.get_video!(video_id)
+  def join("video:" <> video_slug, _params, socket) do
+    video = Multimedia.get_video!(video_slug)
 
     annotations =
       video
       |> Multimedia.list_annotations()
       |> Enum.map(&annotation_json/1)
 
-    {:ok, %{annotations: annotations}, assign(socket, :video_id, video_id)}
+    {:ok, %{annotations: annotations}, assign(socket, :video_id, video.id)}
   end
 
   @impl true
