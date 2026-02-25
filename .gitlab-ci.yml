@@ -1,0 +1,28 @@
+stages:
+  - test
+
+variables:
+  MIX_ENV: "test"
+  POSTGRES_USER: "postgres"
+  POSTGRES_PASSWORD: "postgres"
+  POSTGRES_DB: "rumbl_test"
+  POSTGRES_HOST: "postgres"
+
+cache:
+  key: "mix-${CI_COMMIT_REF_SLUG}"
+  paths:
+    - deps/
+    - _build/
+
+test:
+  stage: test
+  image: elixir:1.18.4
+  services:
+    - name: postgres:16
+      alias: postgres
+  before_script:
+    - mix local.hex --force
+    - mix local.rebar --force
+  script:
+    - mix deps.get
+    - mix precommit
