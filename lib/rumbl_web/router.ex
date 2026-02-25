@@ -27,6 +27,7 @@ defmodule RumblWeb.Router do
     resources "/sessions", SessionController, only: [:new, :create]
     delete "/sessions", SessionController, :delete
 
+    ## Live Routes (auth)
     live_session :authenticated_user,
       on_mount: [{RumblWeb.UserLiveAuth, :ensure_authenticated}] do
       live "/videos", VideoLive.Index, :index
@@ -34,9 +35,16 @@ defmodule RumblWeb.Router do
       live "/videos/:id/edit", VideoLive.Form, :edit
     end
 
+    ## Live Routes (current_user)
     live_session :current_user, on_mount: [{RumblWeb.UserLiveAuth, :mount_current_user}] do
+      # videos
       live "/videos/:id", VideoLive.Show, :show
       live "/watch/:id", VideoLive.Watch, :show
+
+      # users
+      live "/users", UserLive.Index, :index
+      live "/users/new", UserLive.Register, :new
+      live "/users/:id", UserLive.Show, :show
     end
   end
 
