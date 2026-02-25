@@ -20,9 +20,6 @@ defmodule RumblWeb.Router do
 
     get "/", PageController, :home
 
-    # User routes
-    resources "/users", UserController, only: [:index, :show, :new, :create]
-
     # Session routes
     resources "/sessions", SessionController, only: [:new, :create]
     delete "/sessions", SessionController, :delete
