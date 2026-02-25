@@ -1,10 +1,21 @@
 <Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
-  <div class="min-h-[60vh] flex flex-col items-center justify-center text-center">
-    <h1 class="text-5xl font-bold text-brand mb-4">
+  <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+    <img
+      src={~p"/images/hero/youtube-homepage.jpg"}
+      alt=""
+      aria-hidden="true"
+      class="absolute left-1/2 top-1/2 h-[105%] w-[105%] max-w-none -translate-x-1/2 -translate-y-1/2 -rotate-[12deg] scale-80 object-cover md:scale-[1.35]"
+    />
+    <div class="absolute inset-0 bg-black/65" />
+    <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black/75" />
+  </div>
+
+  <div class="min-h-screen flex flex-col items-center justify-center text-center text-white">
+    <h1 class="text-5xl font-bold mb-4">
       Let's get ready to Rumbl!
     </h1>
 
-    <p class="text-xl text-base-content/70 max-w-2xl mb-8">
+    <p class="text-xl max-w-2xl mb-8 text-white/90">
       Watch videos together and share your thoughts in real-time.
       Add annotations to videos and see what others think!
     </p>
@@ -28,24 +39,24 @@
     </div>
 
     <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl">
-      <div class="card bg-base-200 p-6">
+      <div class="card bg-base-200/85 p-6 shadow-lg backdrop-blur-sm">
         <div class="text-4xl mb-4">&#127916;</div>
-        <h3 class="text-lg font-semibold mb-2">Share Videos</h3>
-        <p class="text-base-content/70">Add YouTube videos and share them with the community.</p>
+        <h3 class="text-lg font-semibold mb-2 text-base-content">Share Videos</h3>
+        <p class="text-base-content/80">Add YouTube videos and share them with the community.</p>
       </div>
 
-      <div class="card bg-base-200 p-6">
+      <div class="card bg-base-200/85 p-6 shadow-lg backdrop-blur-sm">
         <div class="text-4xl mb-4">&#128172;</div>
-        <h3 class="text-lg font-semibold mb-2">Real-time Annotations</h3>
-        <p class="text-base-content/70">
+        <h3 class="text-lg font-semibold mb-2 text-base-content">Real-time Annotations</h3>
+        <p class="text-base-content/80">
           Add comments at specific moments while watching videos.
         </p>
       </div>
 
-      <div class="card bg-base-200 p-6">
+      <div class="card bg-base-200/85 p-6 shadow-lg backdrop-blur-sm">
         <div class="text-4xl mb-4">&#128101;</div>
-        <h3 class="text-lg font-semibold mb-2">Watch Together</h3>
-        <p class="text-base-content/70">See annotations from other users in real-time.</p>
+        <h3 class="text-lg font-semibold mb-2 text-base-content">Watch Together</h3>
+        <p class="text-base-content/80">See annotations from other users in real-time.</p>
       </div>
     </div>
   </div>

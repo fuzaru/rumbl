@@ -51,6 +51,7 @@ defmodule Rumbl.Accounts do
     |> Repo.update()
   end
 
+  @spec delete_user(%Rumbl.Accounts.User{optional(any()) => any()}) :: any()
   @doc """
   Deletes a user.
   """

@@ -371,6 +371,54 @@ defmodule RumblWeb.CoreComponents do
   end
 
   @doc """
+  Renders a full-screen hero section with a tilted background image and dark overlays.
+  """
+  attr :id, :string, default: "hero-tilt-background"
+  attr :image_src, :string, required: true
+  attr :alt, :string, default: ""
+  attr :title, :string, default: nil
+  attr :subtitle, :string, default: nil
+  attr :button_text, :string, default: nil
+  attr :button_navigate, :string, default: nil
+  attr :button_variant, :string, default: nil
+  attr :vignette, :boolean, default: true
+  slot :inner_block
+
+  def hero_tilt_background(assigns) do
+    ~H"""
+    <section id={@id} class="relative isolate h-screen w-full overflow-hidden">
+      <img
+        src={@image_src}
+        alt={@alt}
+        aria-hidden={@alt == ""}
+        class="pointer-events-none absolute left-1/2 top-1/2 h-[140%] w-[140%] max-w-none -translate-x-1/2 -translate-y-1/2 -rotate-[12deg] scale-125 object-cover opacity-80 blur-[1px] md:scale-[1.35]"
+      />
+
+      <div class="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
+      <div :if={@vignette} class="absolute inset-0 shadow-[inset_0_0_160px_rgba(0,0,0,0.8)]" />
+
+      <div class="relative z-10 flex h-full items-center justify-center px-6 text-center">
+        <%= if @inner_block != [] do %>
+          {render_slot(@inner_block)}
+        <% else %>
+          <div class="mx-auto max-w-3xl text-white">
+            <h1 :if={@title} class="text-4xl font-semibold leading-tight sm:text-5xl md:text-6xl">
+              {@title}
+            </h1>
+            <p :if={@subtitle} class="mt-4 text-base text-white/85 sm:text-lg md:text-xl">
+              {@subtitle}
+            </p>
+            <div :if={@button_text} class="mt-8">
+              <.button navigate={@button_navigate} variant={@button_variant}>{@button_text}</.button>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </section>
+    """
+  end
+
+  @doc """
   Renders a header with title.
   """
   slot :inner_block, required: true
