@@ -32,13 +32,28 @@ defmodule RumblWeb.Layouts do
     default: nil,
     doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
 
+  attr :show_nav_border, :boolean, default: true, doc: "whether to show the navbar bottom border"
+  attr :overlay_nav, :boolean, default: false, doc: "whether the navbar overlays the page content"
+
+  attr :main_class, :string,
+    default: "px-4 py-10 sm:px-6 lg:px-8",
+    doc: "classes for the main wrapper"
+
+  attr :content_class, :string,
+    default: "mx-auto max-w-4xl space-y-4",
+    doc: "classes for the inner content wrapper"
+
   slot :inner_block, required: true
 
   def app(assigns) do
     ~H"""
-    <header class="navbar px-4 sm:px-6 lg:px-8 border-b border-base-300">
+    <header class={[
+      "navbar px-4 sm:px-6 lg:px-8 bg-black/35 backdrop-blur-md",
+      @overlay_nav && "absolute inset-x-0 top-0 z-30",
+      @show_nav_border && "border-b border-base-300"
+    ]}>
       <div class="flex-1">
-        <a href="/" class="flex-1 flex w-fit items-center gap-2">
+        <a href="/" class="ml-8 md:ml-16 flex w-fit items-center gap-2">
           <span class="text-xl font-bold text-brand">Rumbl</span>
         </a>
       </div>
@@ -59,21 +74,21 @@ defmodule RumblWeb.Layouts do
             </li>
           <% else %>
             <li>
-              <a href="/sessions/new" class="btn btn-ghost">Log in</a>
+              <a href="/sessions/new" class="btn btn-ghost">{gettext("Log in")}</a>
             </li>
             <li>
-              <a href="/users/new" class="btn btn-primary">Register</a>
+              <a href="/users/new" class="btn btn-primary">{gettext("Register")}</a>
             </li>
           <% end %>
           <li>
-            <.theme_toggle />
+            <.locale_switcher />
           </li>
         </ul>
       </div>
     </header>
 
-    <main class="px-4 py-10 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-4xl space-y-4">
+    <main class={@main_class}>
+      <div class={@content_class}>
         {render_slot(@inner_block)}
       </div>
     </main>
@@ -126,38 +141,31 @@ defmodule RumblWeb.Layouts do
   end
 
   @doc """
-  Provides dark vs light theme toggle based on themes defined in app.css.
-
-  See <head> in root.html.heex which applies the theme before page load.
+  Provides language switching for supported locales.
   """
-  def theme_toggle(assigns) do
+  def locale_switcher(assigns) do
+    assigns = assign(assigns, :current_locale, Gettext.get_locale(RumblWeb.Gettext))
+
     ~H"""
-    <div class="card relative flex flex-row items-center border-2 border-base-300 bg-base-300 rounded-full">
-      <div class="absolute w-1/3 h-full rounded-full border-1 border-base-200 bg-base-100 brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 transition-[left]" />
-
-      <button
-        class="flex p-2 cursor-pointer w-1/3"
-        phx-click={JS.dispatch("phx:set-theme")}
-        data-phx-theme="system"
+    <div class="flex items-center gap-2 rounded-full border border-base-300 bg-base-200/60 px-2 py-1 text-sm">
+      <.link
+        href={~p"/locale/en"}
+        class={[
+          "btn btn-xs rounded-full",
+          if(@current_locale == "en", do: "btn-primary", else: "btn-ghost")
+        ]}
       >
-        <.icon name="hero-computer-desktop-micro" class="size-4 opacity-75 hover:opacity-100" />
-      </button>
-
-      <button
-        class="flex p-2 cursor-pointer w-1/3"
-        phx-click={JS.dispatch("phx:set-theme")}
-        data-phx-theme="light"
+        {gettext("English")}
+      </.link>
+      <.link
+        href={~p"/locale/fil"}
+        class={[
+          "btn btn-xs rounded-full",
+          if(@current_locale == "fil", do: "btn-primary", else: "btn-ghost")
+        ]}
       >
-        <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" />
-      </button>
-
-      <button
-        class="flex p-2 cursor-pointer w-1/3"
-        phx-click={JS.dispatch("phx:set-theme")}
-        data-phx-theme="dark"
-      >
-        <.icon name="hero-moon-micro" class="size-4 opacity-75 hover:opacity-100" />
-      </button>
+        {gettext("Filipino")}
+      </.link>
     </div>
     """
   end

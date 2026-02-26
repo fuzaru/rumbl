@@ -1,0 +1,18 @@
+msgid ""
+msgstr ""
+"Language: fil\n"
+
+msgid "Log in"
+msgstr "Mag-log in"
+
+msgid "Register"
+msgstr "Magrehistro"
+
+msgid "English"
+msgstr "Ingles"
+
+msgid "Filipino"
+msgstr "Filipino"
+
+msgid "Language updated"
+msgstr "Na-update ang wika"
