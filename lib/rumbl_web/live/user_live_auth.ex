@@ -7,10 +7,15 @@ defmodule RumblWeb.UserLiveAuth do
   import Phoenix.LiveView
 
   alias Rumbl.Accounts
+  alias RumblWeb.Locale
 
   def on_mount(:mount_current_user, _params, session, socket) do
+    locale = Locale.from_session(session)
+    Gettext.put_locale(RumblWeb.Gettext, locale)
+
     socket =
       socket
+      |> assign_new(:locale, fn -> locale end)
       |> assign_new(:current_scope, fn -> nil end)
       |> assign_new(:current_user, fn -> get_user_from_session(session) end)
 
@@ -18,8 +23,12 @@ defmodule RumblWeb.UserLiveAuth do
   end
 
   def on_mount(:ensure_authenticated, _params, session, socket) do
+    locale = Locale.from_session(session)
+    Gettext.put_locale(RumblWeb.Gettext, locale)
+
     socket =
       socket
+      |> assign_new(:locale, fn -> locale end)
       |> assign_new(:current_scope, fn -> nil end)
       |> assign_new(:current_user, fn -> get_user_from_session(session) end)
 

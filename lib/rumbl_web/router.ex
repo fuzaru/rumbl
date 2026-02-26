@@ -4,6 +4,7 @@ defmodule RumblWeb.Router do
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
+    plug RumblWeb.Locale
     plug :fetch_live_flash
     plug :put_root_layout, html: {RumblWeb.Layouts, :root}
     plug :protect_from_forgery
@@ -17,6 +18,8 @@ defmodule RumblWeb.Router do
 
   scope "/", RumblWeb do
     pipe_through :browser
+
+    get "/locale/:locale", LocaleController, :update
 
     # Session routes
     resources "/sessions", SessionController, only: [:create]
