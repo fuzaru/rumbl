@@ -109,6 +109,31 @@ const VideoWatch = {
   }
 }
 
+const FocusHintDisplayName = {
+  mounted() {
+    this.input = this.el.querySelector("#register-display-name")
+    this.hint = this.el.querySelector("#display-name-help")
+
+    if (!this.input || !this.hint) return
+
+    this.onFocus = () => this.hint.classList.remove("hidden")
+    this.onBlur = () => this.hint.classList.add("hidden")
+
+    this.input.addEventListener("focus", this.onFocus)
+    this.input.addEventListener("blur", this.onBlur)
+  },
+
+  destroyed() {
+    if (this.input && this.onFocus) {
+      this.input.removeEventListener("focus", this.onFocus)
+    }
+
+    if (this.input && this.onBlur) {
+      this.input.removeEventListener("blur", this.onBlur)
+    }
+  }
+}
+
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
@@ -116,6 +141,7 @@ const liveSocket = new LiveSocket("/live", Socket, {
   hooks: {
     ...colocatedHooks,
     VideoWatch,
+    FocusHintDisplayName,
   },
 })
 
@@ -123,6 +149,21 @@ const liveSocket = new LiveSocket("/live", Socket, {
 topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
 window.addEventListener("phx:page-loading-start", _info => topbar.show(300))
 window.addEventListener("phx:page-loading-stop", _info => topbar.hide())
+
+const authRoute = (path) => path === "/sessions/new" || path === "/users/new"
+
+window.addEventListener("phx:page-loading-start", (info) => {
+  const target = info?.detail?.to
+  const current = window.location.pathname
+
+  if (authRoute(current) && (!target || authRoute(target))) {
+    document.documentElement.classList.add("auth-switching")
+  }
+})
+
+window.addEventListener("phx:page-loading-stop", () => {
+  document.documentElement.classList.remove("auth-switching")
+})
 
 // connect if there are any LiveViews on the page
 liveSocket.connect()
@@ -167,4 +208,3 @@ if (process.env.NODE_ENV === "development") {
     window.liveReloader = reloader
   })
 }
-

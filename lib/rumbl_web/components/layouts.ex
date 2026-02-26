@@ -34,6 +34,7 @@ defmodule RumblWeb.Layouts do
 
   attr :show_nav_border, :boolean, default: true, doc: "whether to show the navbar bottom border"
   attr :overlay_nav, :boolean, default: false, doc: "whether the navbar overlays the page content"
+  attr :show_nav, :boolean, default: true, doc: "whether to show the navbar"
 
   attr :main_class, :string,
     default: "px-4 py-10 sm:px-6 lg:px-8",
@@ -47,14 +48,18 @@ defmodule RumblWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <header class={[
-      "navbar px-4 sm:px-6 lg:px-8 bg-black/35 backdrop-blur-md",
-      @overlay_nav && "absolute inset-x-0 top-0 z-30",
-      @show_nav_border && "border-b border-base-300"
-    ]}>
+    <header
+      :if={@show_nav}
+      class={[
+        "navbar px-4 sm:px-6 lg:px-8 bg-black/35 backdrop-blur-md",
+        @overlay_nav && "absolute inset-x-0 top-0 z-30",
+        @show_nav_border && "border-b border-base-300"
+      ]}
+    >
       <div class="flex-1">
-        <a href="/" class="ml-8 md:ml-16 flex w-fit items-center gap-2">
-          <span class="text-xl font-bold text-brand">Rumbl</span>
+        <a href="/" class="ml-8 md:ml-16 flex w-fit items-center gap-2 text-white/95">
+          <img src={~p"/images/logo.png"} alt="Rumbl logo" class="h-[40px] w-auto object-contain" />
+          <span class="text-3xl font-extrabold tracking-tight">Rumbl</span>
         </a>
       </div>
       <div class="flex-none">

@@ -1,13 +1,95 @@
-<Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
-  <.header>Create Account</.header>
+<Layouts.app
+  flash={@flash}
+  current_user={@current_user}
+  current_scope={@current_scope}
+  show_nav={false}
+  main_class="min-h-screen p-0"
+  content_class="min-h-screen w-full"
+>
+  <section class="auth-scene">
+    <div class="auth-starfield" />
+    <a href="/" class="absolute left-6 top-6 z-10 flex items-center gap-2 text-white/95">
+      <img src={~p"/images/logo.png"} alt="Rumbl logo" class="h-[52px] w-auto object-contain" />
+      <span class="text-3xl font-extrabold tracking-tight">Rumbl</span>
+    </a>
+    <div class="auth-card auth-card-enter auth-card-register" id="auth-card">
+      <h1 class="auth-title">Create an account</h1>
 
-  <.form for={@form} id="user-register-form" phx-change="validate" phx-submit="save">
-    <.input field={@form[:name]} type="text" label="Name" required />
-    <.input field={@form[:username]} type="text" label="Username" required />
-    <.input field={@form[:password]} type="password" label="Password" required />
+      <.form
+        for={@form}
+        id="user-register-form"
+        phx-change="validate"
+        phx-submit="save"
+        class="mt-6 space-y-4"
+      >
+        <div id="display-name-help-group" phx-hook="FocusHintDisplayName">
+          <label for={@form[:name].id} class="auth-label">
+            DISPLAY NAME
+            <span
+              :if={
+                is_nil(@form[:name].value) or @form[:name].value == "" or
+                  @form[:name].errors != []
+              }
+              class="text-[#ED4245]"
+            >
+              *
+            </span>
+          </label>
+          <.input
+            field={@form[:name]}
+            type="text"
+            required
+            class="auth-input"
+            id="register-display-name"
+          />
+          <p id="display-name-help" class="auth-hint hidden -mt-1 mb-1 text-sm">
+            This is how others see you. You can use special characters and emoji.
+          </p>
+        </div>
+        <div>
+          <label for={@form[:username].id} class="auth-label">
+            USERNAME
+            <span
+              :if={
+                is_nil(@form[:username].value) or @form[:username].value == "" or
+                  @form[:username].errors != []
+              }
+              class="text-[#ED4245]"
+            >
+              *
+            </span>
+          </label>
+          <.input field={@form[:username]} type="text" required class="auth-input" />
+        </div>
+        <div>
+          <label for={@form[:password].id} class="auth-label">
+            PASSWORD
+            <span
+              :if={
+                is_nil(@form[:password].value) or @form[:password].value == "" or
+                  @form[:password].errors != []
+              }
+              class="text-[#ED4245]"
+            >
+              *
+            </span>
+          </label>
+          <.input field={@form[:password]} type="password" required class="auth-input" />
+        </div>
 
-    <div class="mt-6">
-      <.button>Create account</.button>
+        <.button class="auth-submit">Create Account</.button>
+      </.form>
+
+      <p class="mt-4 text-sm text-[#B5BAC1]">
+        Already have an account?
+        <.link
+          navigate={~p"/sessions/new"}
+          id="switch-to-login"
+          class="auth-meta-link ml-1 font-semibold"
+        >
+          Log In
+        </.link>
+      </p>
     </div>
-  </.form>
+  </section>
 </Layouts.app>

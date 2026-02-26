@@ -1,22 +1,77 @@
-<Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
-  <.header>
-    Log In
-    <:subtitle>Welcome back to Rumbl!</:subtitle>
-  </.header>
+<Layouts.app
+  flash={@flash}
+  current_user={@current_user}
+  current_scope={@current_scope}
+  show_nav={false}
+  main_class="min-h-screen p-0"
+  content_class="min-h-screen w-full"
+>
+  <section class="auth-scene">
+    <div class="auth-starfield" />
+    <a href="/" class="absolute left-6 top-6 z-10 flex items-center gap-2 text-white/95">
+      <img src={~p"/images/logo.png"} alt="Rumbl logo" class="h-[52px] w-auto object-contain" />
+      <span class="text-3xl font-extrabold tracking-tight">Rumbl</span>
+    </a>
+    <div class="auth-card auth-card-enter" id="auth-card">
+      <h1 class="auth-title">Welcome back!</h1>
+      <p class="auth-subtitle">We're so excited to see you again!</p>
 
-  <.form for={@form} id="session-form" action={~p"/sessions"} method="post">
-    <.input field={@form[:username]} type="text" label="Username" required />
-    <.input field={@form[:password]} type="password" label="Password" required />
+      <.form
+        for={@form}
+        id="session-form"
+        phx-change="validate"
+        action={~p"/sessions"}
+        method="post"
+        class="mt-6 space-y-4"
+      >
+        <div>
+          <label for={@form[:username].id} class="auth-label">
+            USERNAME
+            <span
+              :if={
+                is_nil(@form[:username].value) or @form[:username].value == "" or
+                  @form[:username].errors != []
+              }
+              class="text-[#ED4245]"
+            >
+              *
+            </span>
+          </label>
+          <.input field={@form[:username]} type="text" required class="auth-input" />
+        </div>
+        <div>
+          <label for={@form[:password].id} class="auth-label">
+            PASSWORD
+            <span
+              :if={
+                is_nil(@form[:password].value) or @form[:password].value == "" or
+                  @form[:password].errors != []
+              }
+              class="text-[#ED4245]"
+            >
+              *
+            </span>
+          </label>
+          <.input field={@form[:password]} type="password" required class="auth-input" />
+        </div>
 
-    <div class="mt-6">
-      <.button>Log In</.button>
+        <.link navigate={~p"/sessions/new"} class="auth-meta-link inline-block">
+          Forgot your password?
+        </.link>
+
+        <.button class="auth-submit">Log In</.button>
+      </.form>
+
+      <p class="mt-4 text-sm text-[#B5BAC1]">
+        Need an account?
+        <.link
+          navigate={~p"/users/new"}
+          id="switch-to-register"
+          class="auth-meta-link ml-1 font-semibold"
+        >
+          Register
+        </.link>
+      </p>
     </div>
-  </.form>
-
-  <p class="mt-4 text-sm text-gray-600">
-    Don't have an account?
-    <.link navigate={~p"/users/new"} class="font-semibold text-brand hover:underline">
-      Register
-    </.link>
-  </p>
+  </section>
 </Layouts.app>

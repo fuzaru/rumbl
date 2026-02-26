@@ -103,3 +103,138 @@
 [data-phx-session], [data-phx-teleported-src] { display: contents }
 
 /* This file is for your main application CSS */
+
+.auth-scene {
+  position: relative;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: 1.5rem;
+  background:
+    radial-gradient(circle at 18% 80%, rgba(52, 6, 140, 0.75) 0%, rgba(52, 6, 140, 0) 40%),
+    radial-gradient(circle at 84% 22%, rgba(56, 138, 255, 0.75) 0%, rgba(56, 138, 255, 0) 42%),
+    linear-gradient(135deg, #16073a 0%, #2a2a9a 55%, #357bff 100%);
+}
+
+.auth-starfield {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 8% 18%, rgba(255, 255, 255, 0.5) 0 2px, transparent 3px),
+    radial-gradient(circle at 25% 32%, rgba(255, 255, 255, 0.35) 0 1px, transparent 2px),
+    radial-gradient(circle at 58% 14%, rgba(255, 255, 255, 0.4) 0 1px, transparent 2px),
+    radial-gradient(circle at 74% 30%, rgba(255, 255, 255, 0.35) 0 2px, transparent 3px),
+    radial-gradient(circle at 88% 64%, rgba(255, 255, 255, 0.4) 0 1px, transparent 2px),
+    radial-gradient(circle at 14% 74%, rgba(255, 255, 255, 0.25) 0 2px, transparent 3px),
+    radial-gradient(circle at 44% 66%, rgba(255, 255, 255, 0.25) 0 1px, transparent 2px),
+    radial-gradient(circle at 67% 84%, rgba(255, 255, 255, 0.35) 0 2px, transparent 3px);
+  filter: blur(0.2px);
+  opacity: 0.9;
+}
+
+.auth-card {
+  position: relative;
+  width: min(100%, 30rem);
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #313338;
+  color: #f2f3f5;
+  padding: 2rem;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+}
+
+.auth-card-register {
+  width: min(100%, 28rem);
+}
+
+.auth-title {
+  font-size: 2rem;
+  line-height: 1.2;
+  font-weight: 700;
+  text-align: center;
+}
+
+.auth-subtitle {
+  margin-top: 0.5rem;
+  color: #b5bac1;
+  text-align: center;
+}
+
+.auth-label {
+  display: inline-block;
+  margin-bottom: 0.35rem;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.auth-hint {
+  color: #ffffff;
+}
+
+.auth-input {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid #222428;
+  background: #1e1f22;
+  color: #f2f3f5;
+  padding: 0.7rem 0.85rem;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.auth-input:focus {
+  outline: none;
+  border-color: #5865f2;
+  box-shadow: 0 0 0 2px rgba(88, 101, 242, 0.25);
+}
+
+.auth-submit {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: none;
+  background: #5865f2;
+  color: #ffffff;
+  font-weight: 600;
+  transition: background-color 180ms ease, transform 180ms ease;
+}
+
+.auth-submit:hover {
+  background: #4752c4;
+}
+
+.auth-submit:active {
+  transform: translateY(1px);
+}
+
+.auth-meta-link {
+  color: #00a8fc;
+  transition: color 180ms ease;
+}
+
+.auth-meta-link:hover {
+  color: #68c9ff;
+  text-decoration: underline;
+}
+
+.auth-card-enter {
+  animation: auth-card-enter 320ms ease-out both;
+}
+
+html.auth-switching .auth-card {
+  opacity: 0;
+  transform: translateY(14px) scale(0.98);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+@keyframes auth-card-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
