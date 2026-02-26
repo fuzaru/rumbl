@@ -28,6 +28,7 @@ defmodule RumblWeb.Router do
     ## Live Routes (auth)
     live_session :authenticated_user,
       on_mount: [{RumblWeb.UserLiveAuth, :ensure_authenticated}] do
+      live "/home", PageLive.Home, :home
       live "/videos", VideoLive.Index, :index
       live "/videos/new", VideoLive.Form, :new
       live "/videos/:id/edit", VideoLive.Form, :edit
@@ -36,7 +37,7 @@ defmodule RumblWeb.Router do
     ## Live Routes (current_user)
     live_session :current_user, on_mount: [{RumblWeb.UserLiveAuth, :mount_current_user}] do
       # home
-      live "/", PageLive.Home, :home
+      live "/", PageLive.Landing, :landing
 
       # sessions
       live "/sessions/new", SessionLive.New, :new

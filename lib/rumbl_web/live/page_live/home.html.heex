@@ -2,79 +2,157 @@
   flash={@flash}
   current_user={@current_user}
   current_scope={@current_scope}
-  show_nav_border={false}
-  overlay_nav={true}
-  main_class="min-h-screen px-0 py-0 bg-black"
-  content_class="w-full"
+  show_nav={false}
+  main_class="h-screen p-0"
+  content_class="h-screen w-full max-w-none"
 >
-  <section class="relative isolate mx-auto w-full max-w-[1700px]">
-    <div class="relative overflow-hidden">
-      <div class="pointer-events-none absolute inset-0 -z-10">
-        <img
-          src={~p"/images/hero/youtube-homepage.jpg"}
-          alt=""
-          aria-hidden="true"
-          class="absolute left-1/2 top-1/2 h-[135%] w-[135%] max-w-none -translate-x-1/2 -translate-y-1/2 -rotate-[7deg] object-cover object-center"
-        />
-        <div class="absolute inset-0 bg-black/65" />
-        <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black/75" />
-      </div>
-      <div class="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black via-black/90 to-transparent" />
+  <section class="rumbl-shell">
+    <aside class="rumbl-rail">
+      <button
+        id="home-logo-entry"
+        type="button"
+        phx-click="select_panel"
+        phx-value-panel="rings"
+        class={[
+          "rumbl-rail-logo",
+          @active_panel == :rings && "is-active"
+        ]}
+      >
+        <img src={~p"/images/logo.png"} alt="Rumbl logo" class="h-8 w-8 object-contain" />
+      </button>
+      <div class="rumbl-rail-divider" />
+      <button type="button" class="rumbl-rail-node">AR</button>
+      <button type="button" class="rumbl-rail-node">FC</button>
+      <button type="button" class="rumbl-rail-node">LC</button>
+      <button type="button" class="rumbl-rail-node is-add">
+        <.icon name="hero-plus" class="size-6" />
+      </button>
+    </aside>
 
-      <div class="flex w-full flex-col items-start justify-start px-4 pt-20 pb-8 text-left text-white md:pt-24">
-        <h1 class="text-5xl font-bold mb-4">
-          Let's get ready to Rumbl!
-        </h1>
+    <div class="rumbl-main">
+      <aside class="rumbl-panel">
+        <div class="rumbl-panel-search">Find or start a ring</div>
+        <div class="rumbl-panel-nav">
+          <button
+            id="panel-my-rings"
+            type="button"
+            phx-click="select_panel"
+            phx-value-panel="rings"
+            class={[
+              "rumbl-panel-item",
+              @active_panel == :rings && "is-active"
+            ]}
+          >
+            <.icon name="hero-user-group" class="size-4" /> My Rings
+          </button>
 
-        <p class="text-xl max-w-2xl mb-8 text-white/90">
-          Watch videos together and share your thoughts in real-time.
-          Add annotations to videos and see what others think!
-        </p>
-
-        <div class="flex gap-4 self-start">
-          <%= if @current_user do %>
-            <a href="/videos" class="btn btn-primary btn-lg">
-              My Videos
-            </a>
-            <a href="/videos/new" class="btn btn-outline btn-lg">
-              Add Video
-            </a>
-          <% else %>
-            <a href="/users/new" class="btn btn-primary btn-lg">
-              Get Started
-            </a>
-            <a href="/sessions/new" class="btn btn-outline btn-lg">
-              Log In
-            </a>
-          <% end %>
+          <button
+            id="panel-invitation-requests"
+            type="button"
+            phx-click="select_panel"
+            phx-value-panel="requests"
+            class={[
+              "rumbl-panel-item",
+              @active_panel == :requests && "is-active"
+            ]}
+          >
+            <.icon name="hero-envelope" class="size-4" /> Invitation Requests
+          </button>
         </div>
+      </aside>
 
-        <div class="mt-14 w-full max-w-4xl">
-          <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
-            <div class="card bg-base-200/85 p-6 shadow-lg backdrop-blur-sm">
-              <div class="text-4xl mb-4">&#127916;</div>
-              <h3 class="text-lg font-semibold mb-2 text-base-content">Share Videos</h3>
-              <p class="text-base-content/80">
-                Add YouTube videos and share them with the community.
-              </p>
+      <main class="rumbl-content">
+        <%= if @active_panel == :rings do %>
+          <section id="my-rings-section" class="space-y-5">
+            <div class="rumbl-content-header">
+              <h1 class="text-xl font-bold tracking-tight">My Rings</h1>
+              <div class="flex items-center gap-2">
+                <button
+                  id="rings-filter-all"
+                  type="button"
+                  phx-click="set_ring_filter"
+                  phx-value-filter="all"
+                  class={[
+                    "rumbl-tab",
+                    @ring_filter == :all && "is-active"
+                  ]}
+                >
+                  All
+                </button>
+                <button
+                  id="rings-new-button"
+                  type="button"
+                  phx-click="new_ring"
+                  class="rumbl-tab is-cta"
+                >
+                  New Ring
+                </button>
+              </div>
             </div>
 
-            <div class="card bg-base-200/85 p-6 shadow-lg backdrop-blur-sm">
-              <div class="text-4xl mb-4">&#128172;</div>
-              <h3 class="text-lg font-semibold mb-2 text-base-content">Real-time Annotations</h3>
-              <p class="text-base-content/80">
-                Add comments at specific moments while watching videos.
-              </p>
+            <div class="space-y-2">
+              <%= for ring <- @rings do %>
+                <article id={"ring-#{ring.id}"} class="rumbl-row">
+                  <div class="flex items-center gap-3">
+                    <div class="rumbl-avatar">{String.first(ring.name)}</div>
+                    <div>
+                      <p class="font-semibold">{ring.name}</p>
+                      <p class="text-xs text-base-content/60">{ring.status}</p>
+                    </div>
+                  </div>
+                  <div class="text-sm text-base-content/70">{ring.members} members</div>
+                </article>
+              <% end %>
+            </div>
+          </section>
+        <% else %>
+          <section id="invitation-requests-section" class="space-y-5">
+            <div class="rumbl-content-header">
+              <h1 class="text-xl font-bold tracking-tight">Invitation Requests</h1>
             </div>
 
-            <div class="card bg-base-200/85 p-6 shadow-lg backdrop-blur-sm">
-              <div class="text-4xl mb-4">&#128101;</div>
-              <h3 class="text-lg font-semibold mb-2 text-base-content">Watch Together</h3>
-              <p class="text-base-content/80">See annotations from other users in real-time.</p>
+            <div class="space-y-2">
+              <%= for request <- @invitation_requests do %>
+                <article id={"invitation-#{request.id}"} class="rumbl-row">
+                  <div>
+                    <p class="font-semibold">{request.requester}</p>
+                    <p class="text-xs text-base-content/60">{request.note}</p>
+                  </div>
+                  <div class="text-sm text-base-content/70">{request.ring}</div>
+                </article>
+              <% end %>
             </div>
-          </div>
+          </section>
+        <% end %>
+      </main>
+
+      <aside class="rumbl-side-info">
+        <h2 class="text-lg font-bold">Quick Actions</h2>
+        <div class="space-y-2">
+          <.link id="home-my-videos" navigate={~p"/videos"} class="rumbl-side-action">
+            My Videos
+          </.link>
+          <.link id="home-add-video" navigate={~p"/videos/new"} class="rumbl-side-action">
+            Add Video
+          </.link>
+          <.link
+            :if={@current_user}
+            id="home-profile"
+            navigate={~p"/users/#{@current_user.id}"}
+            class="rumbl-side-action"
+          >
+            Profile
+          </.link>
+          <.link
+            id="home-logout"
+            href={~p"/sessions"}
+            method="delete"
+            class="rumbl-side-action is-danger"
+          >
+            Log out
+          </.link>
         </div>
-      </div>
+      </aside>
     </div>
   </section>
 </Layouts.app>

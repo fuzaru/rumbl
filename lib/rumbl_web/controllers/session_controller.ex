@@ -10,7 +10,7 @@ defmodule RumblWeb.SessionController do
         conn
         |> Auth.login(user)
         |> put_flash(:info, "Welcome back, #{user.name}!")
-        |> redirect(to: ~p"/")
+        |> redirect(to: ~p"/home")
 
       {:error, _reason} ->
         conn

@@ -1,0 +1,77 @@
+<Layouts.app
+  flash={@flash}
+  current_user={@current_user}
+  current_scope={@current_scope}
+  show_nav_border={false}
+  overlay_nav={true}
+  main_class="min-h-screen px-0 py-0 bg-black"
+  content_class="w-full"
+>
+  <section class="relative isolate mx-auto w-full max-w-[1700px]">
+    <div class="relative overflow-hidden">
+      <div class="pointer-events-none absolute inset-0 -z-10">
+        <img
+          src={~p"/images/hero/youtube-homepage.jpg"}
+          alt=""
+          aria-hidden="true"
+          class="absolute left-1/2 top-1/2 h-[135%] w-[135%] max-w-none -translate-x-1/2 -translate-y-1/2 -rotate-[7deg] object-cover object-center"
+        />
+        <div class="absolute inset-0 bg-black/65" />
+        <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black/75" />
+      </div>
+      <div class="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black via-black/90 to-transparent" />
+
+      <div class="flex w-full flex-col items-start justify-start px-4 pt-20 pb-8 text-left text-white md:pt-24">
+        <h1 class="mb-4 text-5xl font-bold">
+          Let's get ready to Rumbl!
+        </h1>
+
+        <p class="mb-8 max-w-2xl text-xl text-white/90">
+          Watch videos together and share your thoughts in real-time.
+          Add annotations to videos and see what others think!
+        </p>
+
+        <div class="flex gap-4 self-start">
+          <%= if @current_user do %>
+            <.link navigate={~p"/home"} class="btn btn-primary btn-lg">
+              Open Home
+            </.link>
+          <% else %>
+            <.link navigate={~p"/users/new"} class="btn btn-primary btn-lg">
+              Get Started
+            </.link>
+            <.link navigate={~p"/sessions/new"} class="btn btn-outline btn-lg">
+              Log In
+            </.link>
+          <% end %>
+        </div>
+
+        <div class="mt-14 w-full max-w-4xl">
+          <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
+            <div class="card bg-base-200/85 p-6 shadow-lg backdrop-blur-sm">
+              <div class="mb-4 text-4xl">&#127916;</div>
+              <h3 class="mb-2 text-lg font-semibold text-base-content">Share Videos</h3>
+              <p class="text-base-content/80">
+                Add YouTube videos and share them with the community.
+              </p>
+            </div>
+
+            <div class="card bg-base-200/85 p-6 shadow-lg backdrop-blur-sm">
+              <div class="mb-4 text-4xl">&#128172;</div>
+              <h3 class="mb-2 text-lg font-semibold text-base-content">Real-time Annotations</h3>
+              <p class="text-base-content/80">
+                Add comments at specific moments while watching videos.
+              </p>
+            </div>
+
+            <div class="card bg-base-200/85 p-6 shadow-lg backdrop-blur-sm">
+              <div class="mb-4 text-4xl">&#128101;</div>
+              <h3 class="mb-2 text-lg font-semibold text-base-content">Watch Together</h3>
+              <p class="text-base-content/80">See annotations from other users in real-time.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layouts.app>

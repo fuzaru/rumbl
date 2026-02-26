@@ -116,8 +116,8 @@ const FocusHintDisplayName = {
 
     if (!this.input || !this.hint) return
 
-    this.onFocus = () => this.hint.classList.remove("hidden")
-    this.onBlur = () => this.hint.classList.add("hidden")
+    this.onFocus = () => this.hint.classList.add("is-visible")
+    this.onBlur = () => this.hint.classList.remove("is-visible")
 
     this.input.addEventListener("focus", this.onFocus)
     this.input.addEventListener("blur", this.onBlur)
