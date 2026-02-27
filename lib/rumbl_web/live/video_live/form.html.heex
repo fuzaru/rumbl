@@ -1,47 +1,77 @@
-<Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
-  <.header>
-    {@page_title}
-    <:subtitle :if={@live_action == :new}>Share a YouTube video with the community</:subtitle>
-    <:subtitle :if={@live_action == :edit}>{@video.title}</:subtitle>
-  </.header>
+<Layouts.app
+  flash={@flash}
+  current_user={@current_user}
+  current_scope={@current_scope}
+  show_nav={false}
+>
+  <section class="rumbl-page">
+    <header class="rumbl-page-header">
+      <p class="rumbl-page-kicker">Video</p>
+      <h1 class="rumbl-page-title">{@page_title}</h1>
+      <p :if={@live_action == :new} class="rumbl-page-subtitle">
+        Share a YouTube video with your ring members.
+      </p>
+      <p :if={@live_action == :edit} class="rumbl-page-subtitle">
+        Editing: {@video.title}
+      </p>
+    </header>
 
-  <.form for={@form} id="video-form" phx-change="validate" phx-submit="save">
-    <.input field={@form[:title]} type="text" label="Title" required />
-    <.input
-      field={@form[:url]}
-      type="text"
-      label="YouTube URL"
-      placeholder="https://www.youtube.com/watch?v=..."
-      required
-    />
-    <.input field={@form[:description]} type="textarea" label="Description" />
-    <.input
-      field={@form[:category_id]}
-      type="select"
-      label="Category"
-      options={@categories}
-      prompt="Choose a category"
-    />
-
-    <div class="mt-6 flex gap-3">
-      <.button>Save Video</.button>
-      <.link
-        navigate={if(@live_action == :edit, do: ~p"/videos/#{@video}", else: ~p"/videos")}
-        class="btn btn-ghost"
+    <article class="rumbl-page-card">
+      <.form
+        for={@form}
+        id="video-form"
+        phx-change="validate"
+        phx-submit="save"
+        class="rumbl-form-stack"
       >
-        Cancel
-      </.link>
-    </div>
-  </.form>
+        <.input field={@form[:title]} type="text" label="Title" required />
+        <.input
+          field={@form[:url]}
+          type="text"
+          label="YouTube URL"
+          placeholder="https://www.youtube.com/watch?v=..."
+          required
+        />
+        <.input
+          field={@form[:ring_id]}
+          type="select"
+          label="Workspace Ring"
+          options={@ring_options}
+          prompt="Choose a workspace"
+          required
+        />
+        <.input field={@form[:description]} type="textarea" label="Description" />
+        <.input
+          field={@form[:category_id]}
+          type="select"
+          label="Category"
+          options={@categories}
+          prompt="Choose a category"
+        />
 
-  <div :if={@live_action == :edit} class="mt-6">
-    <button
-      type="button"
-      phx-click="delete"
-      data-confirm="Delete this video?"
-      class="btn btn-error btn-outline"
-    >
-      Delete Video
-    </button>
-  </div>
+        <div class="mt-2 flex items-center gap-2">
+          <button type="submit" class="rumbl-tab is-cta">Save Video</button>
+          <.link
+            id="video-form-cancel"
+            navigate={if(@live_action == :edit, do: ~p"/videos/#{@video}", else: ~p"/videos")}
+            class="rumbl-tab"
+          >
+            Cancel
+          </.link>
+        </div>
+      </.form>
+    </article>
+
+    <div :if={@live_action == :edit}>
+      <button
+        id="video-delete-button"
+        type="button"
+        phx-click="delete"
+        data-confirm="Delete this video?"
+        class="rumbl-mini-action is-danger"
+      >
+        Delete Video
+      </button>
+    </div>
+  </section>
 </Layouts.app>

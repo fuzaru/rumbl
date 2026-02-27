@@ -4,9 +4,18 @@ defmodule RumblWeb.VideoLive.Form do
   alias Rumbl.Multimedia
   alias Rumbl.Multimedia.Video
 
+  @ring_options [
+    {"Alpha Ring", "alpha"},
+    {"Focus Ring", "focus"},
+    {"Launch Circle", "launch"}
+  ]
+
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, :categories, Multimedia.category_options())}
+    {:ok,
+     socket
+     |> assign(:categories, Multimedia.category_options())
+     |> assign(:ring_options, @ring_options)}
   end
 
   @impl true
@@ -37,11 +46,13 @@ defmodule RumblWeb.VideoLive.Form do
      |> push_navigate(to: ~p"/videos")}
   end
 
-  defp apply_action(socket, :new, _params) do
+  defp apply_action(socket, :new, params) do
+    ring_id = normalize_ring_id(params["ring"])
+
     socket
     |> assign(:page_title, "Add New Video")
     |> assign(:video, %Video{})
-    |> assign_form(Multimedia.change_video(%Video{}))
+    |> assign_form(Multimedia.change_video(%Video{}, %{"ring_id" => ring_id}))
   end
 
   defp apply_action(socket, :edit, %{"id" => id}) do
@@ -82,4 +93,14 @@ defmodule RumblWeb.VideoLive.Form do
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
     assign(socket, :form, to_form(changeset))
   end
+
+  defp normalize_ring_id(ring_id) when is_binary(ring_id) do
+    if Enum.any?(@ring_options, fn {_name, option_id} -> option_id == ring_id end) do
+      ring_id
+    else
+      ""
+    end
+  end
+
+  defp normalize_ring_id(_), do: ""
 end

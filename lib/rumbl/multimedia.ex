@@ -22,6 +22,17 @@ defmodule Rumbl.Multimedia do
   end
 
   @doc """
+  Returns all videos for a workspace ring.
+  """
+  def list_videos_for_ring(ring_id) when is_binary(ring_id) do
+    Video
+    |> where([v], v.ring_id == ^ring_id)
+    |> order_by([v], desc: v.inserted_at)
+    |> Repo.all()
+    |> Repo.preload([:user, :category])
+  end
+
+  @doc """
   Returns videos for a specific user.
   """
   def list_user_videos(%User{} = user) do

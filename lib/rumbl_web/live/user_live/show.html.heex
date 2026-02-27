@@ -1,14 +1,48 @@
-<Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
-  <.header>
-    {@user.name}
-    <:subtitle>@{@user.username}</:subtitle>
-  </.header>
+<Layouts.app
+  flash={@flash}
+  current_user={@current_user}
+  current_scope={@current_scope}
+  show_nav={false}
+>
+  <section class="rumbl-page">
+    <header class="rumbl-page-header">
+      <p class="rumbl-page-kicker">Profile</p>
+      <h1 class="rumbl-page-title">{@user.name}</h1>
+      <p class="rumbl-page-subtitle">@{@user.username}</p>
+    </header>
 
-  <.list>
-    <:item title="Name">{@user.name}</:item>
-    <:item title="Username">@{@user.username}</:item>
-    <:item title="Member since">{Calendar.strftime(@user.inserted_at, "%B %d, %Y")}</:item>
-  </.list>
+    <article id="user-profile-card" class="rumbl-page-card rumbl-profile-card">
+      <div class="rumbl-profile-lead">
+        <div class="rumbl-avatar rumbl-avatar-lg">{String.first(@user.name)}</div>
+        <div class="min-w-0">
+          <p class="truncate text-lg font-semibold text-[#f4f7ff]">{@user.name}</p>
+          <p class="truncate text-sm text-[#a8b4d1]">@{@user.username}</p>
+        </div>
+      </div>
 
-  <.back navigate={~p"/users"}>Back to users</.back>
+      <div class="rumbl-info-grid">
+        <div class="rumbl-info-cell">
+          <p class="rumbl-info-label">Name</p>
+          <p class="rumbl-info-value">{@user.name}</p>
+        </div>
+        <div class="rumbl-info-cell">
+          <p class="rumbl-info-label">Username</p>
+          <p class="rumbl-info-value">@{@user.username}</p>
+        </div>
+        <div class="rumbl-info-cell">
+          <p class="rumbl-info-label">Member since</p>
+          <p class="rumbl-info-value">{Calendar.strftime(@user.inserted_at, "%B %d, %Y")}</p>
+        </div>
+      </div>
+    </article>
+
+    <div class="flex items-center gap-2">
+      <.link id="profile-back-users" navigate={~p"/users"} class="rumbl-tab">
+        Back to users
+      </.link>
+      <.link :if={@current_user} id="profile-home" navigate={~p"/home"} class="rumbl-tab">
+        Back to home
+      </.link>
+    </div>
+  </section>
 </Layouts.app>

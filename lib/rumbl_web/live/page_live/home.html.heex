@@ -48,13 +48,13 @@
           <div id="ring-video-catalog" class="rumbl-panel-video-list">
             <%= for video <- @ring_videos do %>
               <button
-                id={"catalog-video-#{video.id}"}
+                id={"catalog-video-#{video.slug}"}
                 type="button"
                 phx-click="open_video"
-                phx-value-video_id={video.id}
+                phx-value-video_slug={video.slug}
                 class={[
                   "rumbl-panel-video-item",
-                  @selected_video && @selected_video.id == video.id && "is-active"
+                  @selected_video && @selected_video.slug == video.slug && "is-active"
                 ]}
               >
                 <div class="rumbl-panel-video-thumb">
@@ -63,7 +63,10 @@
                 <div class="min-w-0 text-left">
                   <p class="truncate text-sm font-semibold">{video.title}</p>
                   <p class="truncate text-xs text-base-content/60">
-                    {video.owner} • {video.duration}
+                    {if(video.user, do: video.user.name, else: "Unknown")} • {Calendar.strftime(
+                      video.inserted_at,
+                      "%b %d, %Y"
+                    )}
                   </p>
                 </div>
               </button>
@@ -108,16 +111,38 @@
               <div class="rumbl-content-header">
                 <h1 class="text-xl font-bold tracking-tight">{@selected_ring.name} Workspace</h1>
                 <div class="flex items-center gap-2">
-                  <.link id="ring-workspace-my-videos" navigate={~p"/videos"} class="rumbl-tab">
-                    My Videos
-                  </.link>
                   <.link
                     id="ring-workspace-add-video"
-                    navigate={~p"/videos/new"}
+                    navigate={~p"/videos/new?ring=#{@selected_ring.id}"}
                     class="rumbl-tab is-cta"
                   >
                     Add Video
                   </.link>
+                  <.link
+                    :if={
+                      @selected_video && @current_user &&
+                        @selected_video.user_id == @current_user.id
+                    }
+                    id="ring-workspace-edit-video"
+                    navigate={~p"/videos/#{@selected_video}/edit"}
+                    class="rumbl-tab"
+                  >
+                    Edit Video
+                  </.link>
+                  <button
+                    :if={
+                      @selected_video && @current_user &&
+                        @selected_video.user_id == @current_user.id
+                    }
+                    id="ring-workspace-delete-video"
+                    type="button"
+                    phx-click="delete_workspace_video"
+                    phx-value-video_slug={@selected_video.slug}
+                    data-confirm="Delete this video?"
+                    class="rumbl-mini-action is-danger"
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
 
@@ -126,7 +151,10 @@
                   <div class="rumbl-video-stage-top">
                     <h3 class="text-lg font-semibold">{@selected_video.title}</h3>
                     <span class="text-xs text-base-content/60">
-                      by {@selected_video.owner} • {@selected_video.duration}
+                      by {if(@selected_video.user, do: @selected_video.user.name, else: "Unknown")} • {Calendar.strftime(
+                        @selected_video.inserted_at,
+                        "%b %d, %Y"
+                      )}
                     </span>
                   </div>
                   <div class="rumbl-video-placeholder">
@@ -165,9 +193,17 @@
                 </section>
               <% else %>
                 <div class="rumbl-empty-card">
-                  <p class="text-sm text-base-content/70">
-                    Select a video from the catalog to start annotating.
-                  </p>
+                  <%= if @ring_videos == [] do %>
+                    <p class="text-sm text-base-content/70">
+                      No videos in this workspace yet. Add one for {String.downcase(
+                        @selected_ring.name
+                      )}.
+                    </p>
+                  <% else %>
+                    <p class="text-sm text-base-content/70">
+                      Select a video from the catalog to start annotating.
+                    </p>
+                  <% end %>
                 </div>
               <% end %>
             </section>

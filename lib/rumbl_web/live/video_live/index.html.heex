@@ -1,55 +1,60 @@
-<Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
-  <.header>
-    My Videos
-    <:actions>
-      <.button navigate={~p"/videos/new"}>Add Video</.button>
-    </:actions>
-  </.header>
+<Layouts.app
+  flash={@flash}
+  current_user={@current_user}
+  current_scope={@current_scope}
+  show_nav={false}
+>
+  <section class="rumbl-page">
+    <header class="rumbl-page-header">
+      <p class="rumbl-page-kicker">Library</p>
+      <div class="flex items-center justify-between gap-3">
+        <h1 class="rumbl-page-title">My Videos</h1>
+        <.link id="videos-add-button" navigate={~p"/videos/new"} class="rumbl-tab is-cta">
+          Add Video
+        </.link>
+      </div>
+      <p class="rumbl-page-subtitle">
+        Browse your uploads and jump into watch, edit, or annotation flows.
+      </p>
+    </header>
 
-  <div class="overflow-x-auto rounded-box border border-base-300 bg-base-100 shadow-sm">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Title</th>
-          <th>Category</th>
-          <th>Added</th>
-          <th class="w-44">Actions</th>
-        </tr>
-      </thead>
-      <tbody id="videos" phx-update="stream">
-        <tr class="hidden only:table-row">
-          <td colspan="4" class="text-center text-base-content/70 py-8">No videos yet</td>
-        </tr>
+    <div id="videos" phx-update="stream" class="rumbl-video-stack">
+      <article class="hidden only:block rumbl-empty-card">
+        <p class="text-sm text-base-content/70">
+          No videos yet. Start by adding your first upload.
+        </p>
+      </article>
 
-        <tr :for={{id, video} <- @streams.videos} id={id} class="hover">
-          <td class="font-medium">{video.title}</td>
-          <td>{if(video.category, do: video.category.name, else: "-")}</td>
-          <td>{Calendar.strftime(video.inserted_at, "%b %d, %Y")}</td>
-          <td>
-            <div class="flex gap-3 text-sm">
-              <.link navigate={~p"/watch/#{video}"} class="link link-hover">Watch</.link>
-              <.link navigate={~p"/videos/#{video}"} class="link link-hover">View</.link>
-              <.link navigate={~p"/videos/#{video}/edit"} class="link link-hover">Edit</.link>
-              <button
-                type="button"
-                phx-click="delete"
-                phx-value-id={video.slug}
-                data-confirm="Delete this video?"
-                class="link link-hover text-error"
-              >
-                Delete
-              </button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+      <article :for={{id, video} <- @streams.videos} id={id} class="rumbl-video-card-row">
+        <div class="min-w-0">
+          <p class="truncate text-base font-semibold text-[#f4f7ff]">{video.title}</p>
+          <p class="truncate text-xs text-base-content/60">
+            {if(video.category, do: video.category.name, else: "Uncategorized")} • {Calendar.strftime(
+              video.inserted_at,
+              "%b %d, %Y"
+            )}
+          </p>
+        </div>
+        <div class="rumbl-video-row-actions">
+          <.link navigate={~p"/videos/#{video}/edit"} class="rumbl-mini-action">Edit</.link>
+          <button
+            type="button"
+            phx-click="delete"
+            phx-value-id={video.slug}
+            data-confirm="Delete this video?"
+            class="rumbl-mini-action is-danger"
+          >
+            Delete
+          </button>
+        </div>
+      </article>
+    </div>
 
-  <p :if={@videos_empty?} class="text-center text-base-content/70">
-    You haven't added any videos yet.
-    <.link navigate={~p"/videos/new"} class="link link-hover text-brand">
-      Add your first video
-    </.link>
-  </p>
+    <p :if={@videos_empty?} class="text-sm text-base-content/70">
+      You haven't added any videos yet.
+      <.link navigate={~p"/videos/new"} class="rumbl-inline-link">
+        Add your first video
+      </.link>
+    </p>
+  </section>
 </Layouts.app>

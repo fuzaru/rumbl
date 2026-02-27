@@ -12,6 +12,7 @@ defmodule Rumbl.Multimedia.Video do
     field :url, :string
     field :description, :string
     field :slug, :string
+    field :ring_id, :string
 
     belongs_to :user, User
     belongs_to :category, Category
@@ -22,8 +23,8 @@ defmodule Rumbl.Multimedia.Video do
 
   def changeset(video, attrs) do
     video
-    |> cast(attrs, [:title, :url, :description, :category_id])
-    |> validate_required([:title, :url])
+    |> cast(attrs, [:title, :url, :description, :category_id, :ring_id])
+    |> validate_required([:title, :url, :ring_id])
     |> validate_url(:url)
     |> assoc_constraint(:user)
     |> assoc_constraint(:category)
