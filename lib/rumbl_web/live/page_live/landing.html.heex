@@ -33,8 +33,8 @@
 
         <div class="flex gap-4 self-start">
           <%= if @current_user do %>
-            <.link navigate={~p"/home"} class="btn btn-primary btn-lg">
-              Open Home
+            <.link navigate={~p"/rings"} class="btn btn-primary btn-lg">
+              Open Rings
             </.link>
           <% else %>
             <.link navigate={~p"/users/new"} class="btn btn-primary btn-lg">

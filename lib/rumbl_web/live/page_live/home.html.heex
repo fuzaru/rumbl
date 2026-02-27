@@ -3,23 +3,21 @@
   current_user={@current_user}
   current_scope={@current_scope}
   show_nav={false}
-  main_class="h-screen p-0"
-  content_class="h-screen w-full max-w-none"
+  main_class="min-h-screen p-0"
+  content_class="min-h-screen w-full max-w-none"
 >
   <section class="rumbl-shell">
     <aside class="rumbl-rail">
-      <button
+      <.link
         id="home-logo-entry"
-        type="button"
-        phx-click="select_panel"
-        phx-value-panel="rings"
+        navigate={~p"/rings"}
         class={[
           "rumbl-rail-logo",
           @active_panel == :rings && "is-active"
         ]}
       >
         <img src={~p"/images/logo.png"} alt="Rumbl logo" class="h-8 w-8 object-contain" />
-      </button>
+      </.link>
       <div class="rumbl-rail-divider" />
       <button type="button" class="rumbl-rail-node">AR</button>
       <button type="button" class="rumbl-rail-node">FC</button>
@@ -33,14 +31,13 @@
       <aside class="rumbl-panel">
         <%= if @active_panel == :rings and @selected_ring do %>
           <div class="rumbl-panel-header">
-            <button
+            <.link
               id="ring-workspace-back"
-              type="button"
-              phx-click="back_to_rings"
+              navigate={~p"/rings"}
               class="rumbl-panel-back"
             >
               <.icon name="hero-arrow-left" class="size-4" /> Rings
-            </button>
+            </.link>
             <h2 class="rumbl-panel-title">{@selected_ring.name}</h2>
             <p class="rumbl-panel-subtitle">Video Catalog</p>
           </div>
@@ -75,31 +72,38 @@
         <% else %>
           <div class="rumbl-panel-search">Find or start a ring</div>
           <div class="rumbl-panel-nav">
-            <button
+            <.link
               id="panel-my-rings"
-              type="button"
-              phx-click="select_panel"
-              phx-value-panel="rings"
+              navigate={~p"/rings"}
               class={[
                 "rumbl-panel-item",
                 @active_panel == :rings && "is-active"
               ]}
             >
               <.icon name="hero-user-group" class="size-4" /> My Rings
-            </button>
+            </.link>
 
-            <button
+            <.link
+              id="panel-my-videos"
+              navigate={~p"/videos"}
+              class={[
+                "rumbl-panel-item",
+                @active_panel == :videos && "is-active"
+              ]}
+            >
+              <.icon name="hero-play-circle" class="size-4" /> My Videos
+            </.link>
+
+            <.link
               id="panel-invitation-requests"
-              type="button"
-              phx-click="select_panel"
-              phx-value-panel="requests"
+              navigate={~p"/invitations"}
               class={[
                 "rumbl-panel-item",
                 @active_panel == :requests && "is-active"
               ]}
             >
               <.icon name="hero-envelope" class="size-4" /> Invitation Requests
-            </button>
+            </.link>
           </div>
         <% end %>
       </aside>
@@ -111,24 +115,28 @@
               <div class="rumbl-content-header">
                 <h1 class="text-xl font-bold tracking-tight">{@selected_ring.name} Workspace</h1>
                 <div class="flex items-center gap-2">
-                  <.link
+                  <button
                     id="ring-workspace-add-video"
-                    navigate={~p"/videos/new?ring=#{@selected_ring.id}"}
+                    type="button"
+                    phx-click="open_video_modal_new"
+                    phx-value-ring_id={@selected_ring.id}
                     class="rumbl-tab is-cta"
                   >
                     Add Video
-                  </.link>
-                  <.link
+                  </button>
+                  <button
                     :if={
                       @selected_video && @current_user &&
                         @selected_video.user_id == @current_user.id
                     }
                     id="ring-workspace-edit-video"
-                    navigate={~p"/videos/#{@selected_video}/edit"}
+                    type="button"
+                    phx-click="open_video_modal_edit"
+                    phx-value-video_slug={@selected_video.slug}
                     class="rumbl-tab"
                   >
                     Edit Video
-                  </.link>
+                  </button>
                   <button
                     :if={
                       @selected_video && @current_user &&
@@ -157,10 +165,27 @@
                       )}
                     </span>
                   </div>
-                  <div class="rumbl-video-placeholder">
-                    <.icon name="hero-play-circle" class="size-10" />
-                    <p class="mt-2 text-sm text-base-content/70">Video preview area</p>
-                  </div>
+                  <%= if Rumbl.Multimedia.Video.youtube_id(@selected_video) do %>
+                    <div class="rumbl-video-embed-wrap">
+                      <iframe
+                        id="ring-video-embed"
+                        class="rumbl-video-embed"
+                        src={"https://www.youtube.com/embed/#{Rumbl.Multimedia.Video.youtube_id(@selected_video)}"}
+                        title={@selected_video.title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allowfullscreen
+                      >
+                      </iframe>
+                    </div>
+                  <% else %>
+                    <div class="rumbl-video-placeholder">
+                      <.icon name="hero-play-circle" class="size-10" />
+                      <p class="mt-2 text-sm text-base-content/70">
+                        Preview unavailable. This URL is not a supported YouTube link.
+                      </p>
+                    </div>
+                  <% end %>
                 </article>
 
                 <section id="video-annotations" class="rumbl-annotations">
@@ -245,11 +270,9 @@
 
               <div class="space-y-2">
                 <%= for ring <- @rings do %>
-                  <button
+                  <.link
                     id={"ring-#{ring.id}"}
-                    type="button"
-                    phx-click="select_ring"
-                    phx-value-ring_id={ring.id}
+                    navigate={~p"/rings/#{ring.id}"}
                     class="rumbl-row w-full text-left"
                   >
                     <div class="flex items-center gap-3">
@@ -260,29 +283,90 @@
                       </div>
                     </div>
                     <div class="text-sm text-base-content/70">{ring.members} members</div>
-                  </button>
+                  </.link>
                 <% end %>
               </div>
             </section>
           <% end %>
         <% else %>
-          <section id="invitation-requests-section" class="space-y-5">
-            <div class="rumbl-content-header">
-              <h1 class="text-xl font-bold tracking-tight">Invitation Requests</h1>
-            </div>
+          <%= if @active_panel == :videos do %>
+            <section id="my-videos-section" class="space-y-5">
+              <div class="rumbl-content-header">
+                <h1 class="text-xl font-bold tracking-tight">My Videos</h1>
+                <button
+                  id="home-videos-add"
+                  type="button"
+                  phx-click="open_video_modal_new"
+                  class="rumbl-tab is-cta"
+                >
+                  Add Video
+                </button>
+              </div>
 
-            <div class="space-y-2">
-              <%= for request <- @invitation_requests do %>
-                <article id={"invitation-#{request.id}"} class="rumbl-row">
-                  <div>
-                    <p class="font-semibold">{request.requester}</p>
-                    <p class="text-xs text-base-content/60">{request.note}</p>
-                  </div>
-                  <div class="text-sm text-base-content/70">{request.ring}</div>
-                </article>
-              <% end %>
-            </div>
-          </section>
+              <div class="rumbl-video-stack">
+                <%= if @my_videos == [] do %>
+                  <article class="rumbl-empty-card">
+                    <p class="text-sm text-base-content/70">
+                      No videos yet in your account. Add one to begin.
+                    </p>
+                  </article>
+                <% else %>
+                  <article
+                    :for={video <- @my_videos}
+                    id={"home-video-#{video.slug}"}
+                    class="rumbl-video-card-row"
+                  >
+                    <div class="min-w-0">
+                      <p class="truncate text-base font-semibold text-[#f4f7ff]">{video.title}</p>
+                      <p class="truncate text-xs text-base-content/60">
+                        {if(video.category, do: video.category.name, else: "Uncategorized")} • {Calendar.strftime(
+                          video.inserted_at,
+                          "%b %d, %Y"
+                        )}
+                      </p>
+                    </div>
+                    <div class="rumbl-video-row-actions">
+                      <button
+                        type="button"
+                        phx-click="open_video_modal_edit"
+                        phx-value-video_slug={video.slug}
+                        class="rumbl-mini-action"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        phx-click="delete_my_video"
+                        phx-value-video_slug={video.slug}
+                        data-confirm="Delete this video?"
+                        class="rumbl-mini-action is-danger"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </article>
+                <% end %>
+              </div>
+            </section>
+          <% else %>
+            <section id="invitation-requests-section" class="space-y-5">
+              <div class="rumbl-content-header">
+                <h1 class="text-xl font-bold tracking-tight">Invitation Requests</h1>
+              </div>
+
+              <div class="space-y-2">
+                <%= for request <- @invitation_requests do %>
+                  <article id={"invitation-#{request.id}"} class="rumbl-row">
+                    <div>
+                      <p class="font-semibold">{request.requester}</p>
+                      <p class="text-xs text-base-content/60">{request.note}</p>
+                    </div>
+                    <div class="text-sm text-base-content/70">{request.ring}</div>
+                  </article>
+                <% end %>
+              </div>
+            </section>
+          <% end %>
         <% end %>
       </main>
 
@@ -322,6 +406,74 @@
             <.icon name="hero-arrow-left-on-rectangle" class="size-4" />
           </.link>
         </div>
+      </div>
+    <% end %>
+
+    <%= if @video_modal_open do %>
+      <div class="rumbl-modal-layer">
+        <button
+          type="button"
+          class="rumbl-modal-backdrop"
+          phx-click="close_video_modal"
+          aria-label="Close video modal"
+        >
+        </button>
+        <section id="home-video-modal" class="rumbl-video-modal">
+          <div class="rumbl-video-modal-header">
+            <h2 class="rumbl-video-modal-title">{@video_modal_title}</h2>
+            <button
+              id="home-video-modal-close"
+              type="button"
+              phx-click="close_video_modal"
+              class="rumbl-video-modal-close"
+              aria-label="Close"
+            >
+              <.icon name="hero-x-mark" class="size-5" />
+            </button>
+          </div>
+
+          <.form
+            for={@video_modal_form}
+            id="home-video-modal-form"
+            phx-change="validate_video_modal"
+            phx-submit="save_video_modal"
+            class="rumbl-form-stack"
+          >
+            <.input field={@video_modal_form[:title]} type="text" label="Title" required />
+            <.input
+              field={@video_modal_form[:url]}
+              type="text"
+              label="YouTube URL"
+              placeholder="https://www.youtube.com/watch?v=..."
+              required
+            />
+            <.input
+              field={@video_modal_form[:ring_id]}
+              type="select"
+              label="Workspace Ring"
+              options={@ring_options}
+              prompt="Choose a workspace"
+              required
+            />
+            <.input field={@video_modal_form[:description]} type="textarea" label="Description" />
+            <.input
+              field={@video_modal_form[:category_id]}
+              type="select"
+              label="Category"
+              options={@categories}
+              prompt="Choose a category"
+            />
+
+            <div class="rumbl-video-modal-actions">
+              <button type="button" phx-click="close_video_modal" class="rumbl-tab">
+                Cancel
+              </button>
+              <button type="submit" class="rumbl-tab is-cta">
+                {if(@video_modal_mode == :new, do: "Create Video", else: "Save Changes")}
+              </button>
+            </div>
+          </.form>
+        </section>
       </div>
     <% end %>
   </section>

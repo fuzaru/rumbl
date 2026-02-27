@@ -66,7 +66,7 @@ defmodule RumblWeb.Layouts do
         <ul class="flex flex-column px-1 space-x-4 items-center">
           <%= if @current_user do %>
             <li>
-              <a href="/videos" class="btn btn-ghost">My Videos</a>
+              <a href="/rings" class="btn btn-ghost">Rings</a>
             </li>
             <li>
               <span class="text-sm">Hello, <strong>{@current_user.name}</strong></span>

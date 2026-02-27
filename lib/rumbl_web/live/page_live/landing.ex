@@ -4,7 +4,7 @@ defmodule RumblWeb.PageLive.Landing do
   @impl true
   def mount(_params, _session, socket) do
     if socket.assigns.current_user do
-      {:ok, redirect(socket, to: ~p"/home")}
+      {:ok, redirect(socket, to: ~p"/rings")}
     else
       {:ok, assign(socket, :page_title, "Landing")}
     end
