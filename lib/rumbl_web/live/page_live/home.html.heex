@@ -31,80 +31,204 @@
 
     <div class="rumbl-main">
       <aside class="rumbl-panel">
-        <div class="rumbl-panel-search">Find or start a ring</div>
-        <div class="rumbl-panel-nav">
-          <button
-            id="panel-my-rings"
-            type="button"
-            phx-click="select_panel"
-            phx-value-panel="rings"
-            class={[
-              "rumbl-panel-item",
-              @active_panel == :rings && "is-active"
-            ]}
-          >
-            <.icon name="hero-user-group" class="size-4" /> My Rings
-          </button>
+        <%= if @active_panel == :rings and @selected_ring do %>
+          <div class="rumbl-panel-header">
+            <button
+              id="ring-workspace-back"
+              type="button"
+              phx-click="back_to_rings"
+              class="rumbl-panel-back"
+            >
+              <.icon name="hero-arrow-left" class="size-4" /> Rings
+            </button>
+            <h2 class="rumbl-panel-title">{@selected_ring.name}</h2>
+            <p class="rumbl-panel-subtitle">Video Catalog</p>
+          </div>
 
-          <button
-            id="panel-invitation-requests"
-            type="button"
-            phx-click="select_panel"
-            phx-value-panel="requests"
-            class={[
-              "rumbl-panel-item",
-              @active_panel == :requests && "is-active"
-            ]}
-          >
-            <.icon name="hero-envelope" class="size-4" /> Invitation Requests
-          </button>
-        </div>
+          <div id="ring-video-catalog" class="rumbl-panel-video-list">
+            <%= for video <- @ring_videos do %>
+              <button
+                id={"catalog-video-#{video.id}"}
+                type="button"
+                phx-click="open_video"
+                phx-value-video_id={video.id}
+                class={[
+                  "rumbl-panel-video-item",
+                  @selected_video && @selected_video.id == video.id && "is-active"
+                ]}
+              >
+                <div class="rumbl-panel-video-thumb">
+                  <.icon name="hero-play-circle" class="size-5" />
+                </div>
+                <div class="min-w-0 text-left">
+                  <p class="truncate text-sm font-semibold">{video.title}</p>
+                  <p class="truncate text-xs text-base-content/60">
+                    {video.owner} • {video.duration}
+                  </p>
+                </div>
+              </button>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="rumbl-panel-search">Find or start a ring</div>
+          <div class="rumbl-panel-nav">
+            <button
+              id="panel-my-rings"
+              type="button"
+              phx-click="select_panel"
+              phx-value-panel="rings"
+              class={[
+                "rumbl-panel-item",
+                @active_panel == :rings && "is-active"
+              ]}
+            >
+              <.icon name="hero-user-group" class="size-4" /> My Rings
+            </button>
+
+            <button
+              id="panel-invitation-requests"
+              type="button"
+              phx-click="select_panel"
+              phx-value-panel="requests"
+              class={[
+                "rumbl-panel-item",
+                @active_panel == :requests && "is-active"
+              ]}
+            >
+              <.icon name="hero-envelope" class="size-4" /> Invitation Requests
+            </button>
+          </div>
+        <% end %>
       </aside>
 
       <main class="rumbl-content">
         <%= if @active_panel == :rings do %>
-          <section id="my-rings-section" class="space-y-5">
-            <div class="rumbl-content-header">
-              <h1 class="text-xl font-bold tracking-tight">My Rings</h1>
-              <div class="flex items-center gap-2">
-                <button
-                  id="rings-filter-all"
-                  type="button"
-                  phx-click="set_ring_filter"
-                  phx-value-filter="all"
-                  class={[
-                    "rumbl-tab",
-                    @ring_filter == :all && "is-active"
-                  ]}
-                >
-                  All
-                </button>
-                <button
-                  id="rings-new-button"
-                  type="button"
-                  phx-click="new_ring"
-                  class="rumbl-tab is-cta"
-                >
-                  New Ring
-                </button>
+          <%= if @selected_ring do %>
+            <section id="ring-workspace-section" class="space-y-4">
+              <div class="rumbl-content-header">
+                <h1 class="text-xl font-bold tracking-tight">{@selected_ring.name} Workspace</h1>
+                <div class="flex items-center gap-2">
+                  <.link id="ring-workspace-my-videos" navigate={~p"/videos"} class="rumbl-tab">
+                    My Videos
+                  </.link>
+                  <.link
+                    id="ring-workspace-add-video"
+                    navigate={~p"/videos/new"}
+                    class="rumbl-tab is-cta"
+                  >
+                    Add Video
+                  </.link>
+                </div>
               </div>
-            </div>
 
-            <div class="space-y-2">
-              <%= for ring <- @rings do %>
-                <article id={"ring-#{ring.id}"} class="rumbl-row">
-                  <div class="flex items-center gap-3">
-                    <div class="rumbl-avatar">{String.first(ring.name)}</div>
-                    <div>
-                      <p class="font-semibold">{ring.name}</p>
-                      <p class="text-xs text-base-content/60">{ring.status}</p>
-                    </div>
+              <%= if @selected_video do %>
+                <article id="ring-selected-video" class="rumbl-video-stage">
+                  <div class="rumbl-video-stage-top">
+                    <h3 class="text-lg font-semibold">{@selected_video.title}</h3>
+                    <span class="text-xs text-base-content/60">
+                      by {@selected_video.owner} • {@selected_video.duration}
+                    </span>
                   </div>
-                  <div class="text-sm text-base-content/70">{ring.members} members</div>
+                  <div class="rumbl-video-placeholder">
+                    <.icon name="hero-play-circle" class="size-10" />
+                    <p class="mt-2 text-sm text-base-content/70">Video preview area</p>
+                  </div>
                 </article>
+
+                <section id="video-annotations" class="rumbl-annotations">
+                  <h3 class="text-sm font-semibold uppercase tracking-wide text-base-content/70">
+                    Annotations
+                  </h3>
+                  <div class="space-y-2">
+                    <%= for annotation <- @annotations do %>
+                      <article id={"annotation-#{annotation.id}"} class="rumbl-annotation-row">
+                        <p class="text-sm font-semibold">{annotation.author}</p>
+                        <p class="text-sm text-base-content/75">{annotation.body}</p>
+                      </article>
+                    <% end %>
+                  </div>
+
+                  <.form
+                    for={@annotation_form}
+                    id="annotation-form"
+                    phx-submit="add_annotation"
+                    class="rumbl-annotation-form"
+                  >
+                    <.input
+                      field={@annotation_form[:body]}
+                      type="textarea"
+                      label="Add annotation"
+                      placeholder="Write a note about this video..."
+                    />
+                    <button type="submit" class="rumbl-tab is-cta">Post Note</button>
+                  </.form>
+                </section>
+              <% else %>
+                <div class="rumbl-empty-card">
+                  <p class="text-sm text-base-content/70">
+                    Select a video from the catalog to start annotating.
+                  </p>
+                </div>
               <% end %>
-            </div>
-          </section>
+            </section>
+          <% else %>
+            <section id="my-rings-section" class="space-y-5">
+              <div class="rumbl-content-header">
+                <h1 class="text-xl font-bold tracking-tight">My Rings</h1>
+                <div class="flex items-center gap-2">
+                  <button
+                    id="rings-filter-all"
+                    type="button"
+                    phx-click="set_ring_filter"
+                    phx-value-filter="all"
+                    class={[
+                      "rumbl-tab",
+                      @ring_filter == :all && "is-active"
+                    ]}
+                  >
+                    All
+                  </button>
+                  <button
+                    id="rings-new-button"
+                    type="button"
+                    phx-click="new_ring"
+                    class="rumbl-tab is-cta"
+                  >
+                    New Ring
+                  </button>
+                  <button
+                    id="rings-join-button"
+                    type="button"
+                    phx-click="join_ring"
+                    class="rumbl-tab"
+                  >
+                    Join Ring
+                  </button>
+                </div>
+              </div>
+
+              <div class="space-y-2">
+                <%= for ring <- @rings do %>
+                  <button
+                    id={"ring-#{ring.id}"}
+                    type="button"
+                    phx-click="select_ring"
+                    phx-value-ring_id={ring.id}
+                    class="rumbl-row w-full text-left"
+                  >
+                    <div class="flex items-center gap-3">
+                      <div class="rumbl-avatar">{String.first(ring.name)}</div>
+                      <div>
+                        <p class="font-semibold">{ring.name}</p>
+                        <p class="text-xs text-base-content/60">{ring.status}</p>
+                      </div>
+                    </div>
+                    <div class="text-sm text-base-content/70">{ring.members} members</div>
+                  </button>
+                <% end %>
+              </div>
+            </section>
+          <% end %>
         <% else %>
           <section id="invitation-requests-section" class="space-y-5">
             <div class="rumbl-content-header">
@@ -126,33 +250,43 @@
         <% end %>
       </main>
 
-      <aside class="rumbl-side-info">
-        <h2 class="text-lg font-bold">Quick Actions</h2>
-        <div class="space-y-2">
-          <.link id="home-my-videos" navigate={~p"/videos"} class="rumbl-side-action">
-            My Videos
-          </.link>
-          <.link id="home-add-video" navigate={~p"/videos/new"} class="rumbl-side-action">
-            Add Video
-          </.link>
-          <.link
-            :if={@current_user}
-            id="home-profile"
-            navigate={~p"/users/#{@current_user.id}"}
-            class="rumbl-side-action"
-          >
-            Profile
-          </.link>
-          <.link
-            id="home-logout"
-            href={~p"/sessions"}
-            method="delete"
-            class="rumbl-side-action is-danger"
-          >
-            Log out
-          </.link>
+      <aside class="rumbl-active-now">
+        <h2 class="rumbl-active-now-title">Active Now</h2>
+        <div class="rumbl-active-now-card">
+          <p class="rumbl-active-now-headline">It's quiet for now...</p>
+          <p class="rumbl-active-now-copy">
+            When a ring member starts an activity, you'll see it here.
+          </p>
         </div>
       </aside>
     </div>
+
+    <%= if @current_user do %>
+      <div class="rumbl-bottom-profile-wrap">
+        <div class="rumbl-bottom-profile">
+          <.link
+            id="home-bottom-profile"
+            navigate={~p"/users/#{@current_user.id}"}
+            class="rumbl-bottom-profile-main"
+          >
+            <div class="rumbl-profile-avatar">
+              {String.first(@current_user.username || @current_user.name || "R")}
+            </div>
+            <div class="min-w-0">
+              <p class="truncate text-sm font-semibold text-[#f2f5ff]">{@current_user.name}</p>
+              <p class="truncate text-xs text-[#9ea9c5]">@{@current_user.username}</p>
+            </div>
+          </.link>
+          <.link
+            id="home-bottom-logout"
+            href={~p"/sessions"}
+            method="delete"
+            class="rumbl-bottom-profile-logout"
+          >
+            <.icon name="hero-arrow-left-on-rectangle" class="size-4" />
+          </.link>
+        </div>
+      </div>
+    <% end %>
   </section>
 </Layouts.app>

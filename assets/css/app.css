@@ -255,6 +255,7 @@ html.auth-switching .auth-card {
 }
 
 .rumbl-shell {
+  position: relative;
   display: flex;
   height: 100%;
   background:
@@ -265,7 +266,7 @@ html.auth-switching .auth-card {
 .rumbl-rail {
   width: 4.8rem;
   min-width: 4.8rem;
-  padding: 0.9rem 0.55rem;
+  padding: 0.9rem 0.55rem 4.5rem;
   background: #0c0f16;
   border-right: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
@@ -316,11 +317,11 @@ html.auth-switching .auth-card {
   min-width: 0;
   flex: 1;
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr) 260px;
+  grid-template-columns: 260px minmax(0, 1fr) 280px;
 }
 
 .rumbl-panel {
-  padding: 1rem 0.7rem;
+  padding: 1rem 0.7rem 4.7rem;
   border-right: 1px solid rgba(255, 255, 255, 0.06);
   background: rgba(11, 14, 22, 0.86);
 }
@@ -339,6 +340,153 @@ html.auth-switching .auth-card {
   display: flex;
   flex-direction: column;
   gap: 0.32rem;
+}
+
+.rumbl-panel-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.rumbl-panel-back {
+  width: fit-content;
+  border-radius: 0.6rem;
+  padding: 0.32rem 0.5rem;
+  color: #c9d2e8;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.rumbl-panel-back:hover {
+  background: rgba(148, 183, 255, 0.14);
+  color: #eff4ff;
+}
+
+.rumbl-panel-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f4f7ff;
+}
+
+.rumbl-panel-subtitle {
+  font-size: 0.78rem;
+  color: #a8b4d1;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.rumbl-panel-video-list {
+  margin-top: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.rumbl-panel-video-item {
+  width: 100%;
+  border-radius: 0.7rem;
+  padding: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(10, 13, 20, 0.62);
+  color: #dfe6f7;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.rumbl-panel-video-item:hover {
+  background: rgba(148, 183, 255, 0.12);
+  border-color: rgba(148, 183, 255, 0.35);
+}
+
+.rumbl-panel-video-item.is-active {
+  background: rgba(148, 183, 255, 0.2);
+  border-color: rgba(148, 183, 255, 0.45);
+}
+
+.rumbl-panel-video-thumb {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.55rem;
+  background: linear-gradient(135deg, #4058c9, #2ec2b2);
+  color: #eef3ff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rumbl-bottom-profile-wrap {
+  position: fixed;
+  left: 10px;
+  bottom: 8px;
+  width: 315px;
+  z-index: 40;
+  pointer-events: auto;
+}
+
+.rumbl-bottom-profile {
+  width: 100%;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, #1d2029 0%, #1a1d27 100%);
+  border-top-left-radius: 0.8rem;
+  border-top-right-radius: 0.8rem;
+  border-bottom-left-radius: 0.8rem;
+  border-bottom-right-radius: 0.8rem;
+  padding: 0.45rem 0.55rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.22);
+}
+
+.rumbl-bottom-profile-main {
+  min-width: 0;
+  flex: 1;
+  border-radius: 0.45rem;
+  padding: 0.35rem 0.45rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  transition: background-color 150ms ease;
+}
+
+.rumbl-bottom-profile-main:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.rumbl-profile-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #5e86ff, #4ed7c4);
+  color: #0f1624;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.rumbl-bottom-profile-logout {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.45rem;
+  border: none;
+  color: #c9d2e8;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.rumbl-bottom-profile-logout:hover {
+  background: rgba(238, 89, 111, 0.18);
+  color: #ffd9e0;
 }
 
 .rumbl-panel-item {
@@ -426,6 +574,109 @@ html.auth-switching .auth-card {
   border-color: rgba(148, 183, 255, 0.4);
 }
 
+.rumbl-video-stage {
+  border-radius: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(10, 13, 20, 0.64);
+  padding: 0.9rem;
+}
+
+.rumbl-video-stage-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.rumbl-video-placeholder {
+  margin-top: 0.8rem;
+  border-radius: 0.7rem;
+  border: 1px dashed rgba(148, 183, 255, 0.38);
+  background: linear-gradient(180deg, rgba(17, 21, 31, 0.95), rgba(14, 18, 27, 0.95));
+  min-height: 12rem;
+  display: grid;
+  place-items: center;
+  color: #aebbdd;
+}
+
+.rumbl-annotations {
+  border-radius: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(10, 13, 20, 0.56);
+  padding: 0.85rem;
+}
+
+.rumbl-annotation-row {
+  border-radius: 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.58rem 0.62rem;
+}
+
+.rumbl-annotation-form {
+  margin-top: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.rumbl-empty-card {
+  border-radius: 0.85rem;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  padding: 1.1rem;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.rumbl-mini-action {
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  padding: 0.24rem 0.45rem;
+  font-size: 0.75rem;
+  color: #d6dff5;
+  background: rgba(255, 255, 255, 0.03);
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.rumbl-mini-action:hover {
+  background: rgba(148, 183, 255, 0.16);
+  border-color: rgba(148, 183, 255, 0.5);
+}
+
+.rumbl-active-now {
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 1.2rem 0.9rem;
+  background: rgba(11, 14, 22, 0.9);
+  color: #f4f7ff;
+}
+
+.rumbl-active-now-title {
+  font-size: 1.5rem;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.rumbl-active-now-card {
+  margin-top: 0.9rem;
+  border-radius: 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 1rem 0.9rem;
+}
+
+.rumbl-active-now-headline {
+  text-align: center;
+  font-weight: 700;
+}
+
+.rumbl-active-now-copy {
+  margin-top: 0.5rem;
+  text-align: center;
+  color: #c0c9de;
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
 .rumbl-avatar {
   width: 2.2rem;
   height: 2.2rem;
@@ -438,45 +689,21 @@ html.auth-switching .auth-card {
   font-weight: 800;
 }
 
-.rumbl-side-info {
-  border-left: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 1.2rem 0.9rem;
-  background: rgba(11, 14, 22, 0.9);
-  color: #f4f7ff;
-}
-
-.rumbl-side-action {
-  display: block;
-  border-radius: 0.7rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
-  color: #d6dff5;
-  padding: 0.62rem 0.78rem;
-  transition: background-color 150ms ease, border-color 150ms ease;
-}
-
-.rumbl-side-action:hover {
-  background: rgba(148, 183, 255, 0.16);
-  border-color: rgba(148, 183, 255, 0.5);
-}
-
-.rumbl-side-action.is-danger:hover {
-  background: rgba(238, 89, 111, 0.18);
-  border-color: rgba(238, 89, 111, 0.55);
-  color: #ffd9e0;
-}
-
 @media (max-width: 1200px) {
   .rumbl-main {
     grid-template-columns: 250px minmax(0, 1fr);
   }
 
-  .rumbl-side-info {
+  .rumbl-active-now {
     display: none;
   }
 }
 
 @media (max-width: 860px) {
+  .rumbl-bottom-profile-wrap {
+    display: none;
+  }
+
   .rumbl-main {
     grid-template-columns: minmax(0, 1fr);
   }
