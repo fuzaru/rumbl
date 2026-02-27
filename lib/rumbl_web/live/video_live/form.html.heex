@@ -3,75 +3,189 @@
   current_user={@current_user}
   current_scope={@current_scope}
   show_nav={false}
+  main_class="min-h-screen p-0"
+  content_class="min-h-screen w-full max-w-none"
 >
-  <section class="rumbl-page">
-    <header class="rumbl-page-header">
-      <p class="rumbl-page-kicker">Video</p>
-      <h1 class="rumbl-page-title">{@page_title}</h1>
-      <p :if={@live_action == :new} class="rumbl-page-subtitle">
-        Share a YouTube video with your ring members.
-      </p>
-      <p :if={@live_action == :edit} class="rumbl-page-subtitle">
-        Editing: {@video.title}
-      </p>
-    </header>
+  <section class="rumbl-shell">
+    <aside class="rumbl-rail">
+      <.link id="video-form-logo-entry" navigate={~p"/rings"} class="rumbl-rail-logo">
+        <img src={~p"/images/logo.png"} alt="Rumbl logo" class="h-8 w-8 object-contain" />
+      </.link>
+      <div class="rumbl-rail-divider" />
+      <button type="button" class="rumbl-rail-node">AR</button>
+      <button type="button" class="rumbl-rail-node">FC</button>
+      <button type="button" class="rumbl-rail-node">LC</button>
+      <button type="button" class="rumbl-rail-node is-add">
+        <.icon name="hero-plus" class="size-6" />
+      </button>
+    </aside>
 
-    <article class="rumbl-page-card">
-      <.form
-        for={@form}
-        id="video-form"
-        phx-change="validate"
-        phx-submit="save"
-        class="rumbl-form-stack"
-      >
-        <.input field={@form[:title]} type="text" label="Title" required />
-        <.input
-          field={@form[:url]}
-          type="text"
-          label="YouTube URL"
-          placeholder="https://www.youtube.com/watch?v=..."
-          required
-        />
-        <.input
-          field={@form[:ring_id]}
-          type="select"
-          label="Workspace Ring"
-          options={@ring_options}
-          prompt="Choose a workspace"
-          required
-        />
-        <.input field={@form[:description]} type="textarea" label="Description" />
-        <.input
-          field={@form[:category_id]}
-          type="select"
-          label="Category"
-          options={@categories}
-          prompt="Choose a category"
-        />
-
-        <div class="mt-2 flex items-center gap-2">
-          <button type="submit" class="rumbl-tab is-cta">Save Video</button>
+    <div class="rumbl-main">
+      <aside class="rumbl-panel">
+        <div class="rumbl-panel-search">Find or start a ring</div>
+        <div class="rumbl-panel-nav">
+          <.link id="video-form-panel-rings" navigate={~p"/rings"} class="rumbl-panel-item">
+            <.icon name="hero-user-group" class="size-4" /> My Rings
+          </.link>
           <.link
-            id="video-form-cancel"
-            navigate={if(@live_action == :edit, do: ~p"/videos/#{@video}", else: ~p"/videos")}
-            class="rumbl-tab"
+            id="video-form-panel-videos"
+            navigate={~p"/videos"}
+            class={["rumbl-panel-item", "is-active"]}
           >
-            Cancel
+            <.icon name="hero-play-circle" class="size-4" /> My Videos
+          </.link>
+          <.link
+            id="video-form-panel-invitations"
+            navigate={~p"/invitations"}
+            class="rumbl-panel-item"
+          >
+            <.icon name="hero-envelope" class="size-4" /> Invitation Requests
           </.link>
         </div>
-      </.form>
-    </article>
+      </aside>
 
-    <div :if={@live_action == :edit}>
-      <button
-        id="video-delete-button"
-        type="button"
-        phx-click="delete"
-        data-confirm="Delete this video?"
-        class="rumbl-mini-action is-danger"
+      <main class="rumbl-content">
+        <section class="rumbl-empty-card">
+          <p class="text-sm text-base-content/70">
+            {if(@live_action == :new,
+              do: "Create a new video in your workspace.",
+              else: "Edit video details."
+            )}
+          </p>
+        </section>
+      </main>
+
+      <aside class="rumbl-active-now">
+        <h2 class="rumbl-active-now-title">Active Now</h2>
+        <div class="rumbl-active-now-card">
+          <p class="rumbl-active-now-headline">It's quiet for now...</p>
+          <p class="rumbl-active-now-copy">
+            When a ring member starts an activity, you'll see it here.
+          </p>
+        </div>
+      </aside>
+    </div>
+
+    <%= if @current_user do %>
+      <div class="rumbl-bottom-profile-wrap">
+        <div class="rumbl-bottom-profile">
+          <.link
+            id="video-form-bottom-profile"
+            navigate={~p"/users/#{@current_user.id}"}
+            class="rumbl-bottom-profile-main"
+          >
+            <div class="rumbl-profile-avatar">
+              {String.first(@current_user.username || @current_user.name || "R")}
+            </div>
+            <div class="min-w-0">
+              <p class="truncate text-sm font-semibold text-[#f2f5ff]">{@current_user.name}</p>
+              <p class="truncate text-xs text-[#9ea9c5]">@{@current_user.username}</p>
+            </div>
+          </.link>
+          <.link
+            id="video-form-bottom-logout"
+            href={~p"/sessions"}
+            method="delete"
+            class="rumbl-bottom-profile-logout"
+          >
+            <.icon name="hero-arrow-left-on-rectangle" class="size-4" />
+          </.link>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="rumbl-modal-layer">
+      <.link
+        navigate={
+          if(@return_ring_id in [nil, ""], do: ~p"/videos", else: ~p"/rings/#{@return_ring_id}")
+        }
+        class="rumbl-modal-backdrop"
+        aria-label="Close video modal"
       >
-        Delete Video
-      </button>
+      </.link>
+      <section id="video-route-modal" class="rumbl-video-modal">
+        <div class="rumbl-video-modal-header">
+          <h2 class="rumbl-video-modal-title">
+            {if(@live_action == :new, do: "Add Video", else: "Edit Video")}
+          </h2>
+          <.link
+            id="video-route-modal-close"
+            navigate={
+              if(@return_ring_id in [nil, ""],
+                do: ~p"/videos",
+                else: ~p"/rings/#{@return_ring_id}"
+              )
+            }
+            class="rumbl-video-modal-close"
+            aria-label="Close"
+          >
+            <.icon name="hero-x-mark" class="size-5" />
+          </.link>
+        </div>
+
+        <.form
+          for={@form}
+          id="video-form"
+          phx-change="validate"
+          phx-submit="save"
+          class="rumbl-form-stack"
+        >
+          <.input field={@form[:title]} type="text" label="Title" required />
+          <.input
+            field={@form[:url]}
+            type="text"
+            label="YouTube URL"
+            placeholder="https://www.youtube.com/watch?v=..."
+            required
+          />
+          <.input
+            field={@form[:ring_id]}
+            type="select"
+            label="Workspace Ring"
+            options={@ring_options}
+            prompt="Choose a workspace"
+            required
+          />
+          <.input field={@form[:description]} type="textarea" label="Description" />
+          <.input
+            field={@form[:category_id]}
+            type="select"
+            label="Category"
+            options={@categories}
+            prompt="Choose a category"
+          />
+
+          <div class="rumbl-video-modal-actions">
+            <.link
+              id="video-form-cancel"
+              navigate={
+                if(@return_ring_id in [nil, ""],
+                  do: ~p"/videos",
+                  else: ~p"/rings/#{@return_ring_id}"
+                )
+              }
+              class="rumbl-tab"
+            >
+              Cancel
+            </.link>
+            <button type="submit" class="rumbl-tab is-cta">
+              {if(@live_action == :new, do: "Create Video", else: "Save Changes")}
+            </button>
+          </div>
+        </.form>
+
+        <div :if={@live_action == :edit} class="pt-2">
+          <button
+            id="video-delete-button"
+            type="button"
+            phx-click="delete"
+            data-confirm="Delete this video?"
+            class="rumbl-mini-action is-danger"
+          >
+            Delete Video
+          </button>
+        </div>
+      </section>
     </div>
   </section>
 </Layouts.app>

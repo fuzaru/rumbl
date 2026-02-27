@@ -1,6 +1,25 @@
 defmodule RumblWeb.VideoLive.Watch do
+  use RumblWeb, :live_view
+
   alias Rumbl.Multimedia
   alias Rumbl.Multimedia.Video
+
+  @impl true
+  def mount(_params, _session, socket) do
+    {:ok, assign(socket, :user_token, build_user_token(socket.assigns.current_user))}
+  end
+
+  @impl true
+  def handle_params(%{"id" => id}, _uri, socket) do
+    video = Multimedia.get_video!(id)
+    annotations = Multimedia.list_annotations(video)
+
+    {:noreply,
+     socket
+     |> assign(:page_title, video.title)
+     |> assign(:video, video)
+     |> assign(:annotations, annotations)}
+  end
 
   def init_assigns(socket) do
     socket
@@ -58,4 +77,19 @@ defmodule RumblWeb.VideoLive.Watch do
   end
 
   def youtube_id(%Video{} = video), do: Video.youtube_id(video)
+
+  def format_time(ms) when is_integer(ms) and ms >= 0 do
+    total_seconds = div(ms, 1000)
+    minutes = div(total_seconds, 60)
+    seconds = rem(total_seconds, 60)
+    "#{minutes}:#{String.pad_leading(Integer.to_string(seconds), 2, "0")}"
+  end
+
+  def format_time(_), do: "0:00"
+
+  defp build_user_token(nil), do: nil
+
+  defp build_user_token(user) do
+    Phoenix.Token.sign(RumblWeb.Endpoint, "user socket", user.id)
+  end
 end

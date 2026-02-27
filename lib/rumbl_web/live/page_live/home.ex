@@ -21,13 +21,7 @@ defmodule RumblWeb.PageLive.Home do
     "open_video",
     "back_to_rings",
     "add_annotation",
-    "delete_workspace_video",
-    "delete_my_video",
-    "open_video_modal_new",
-    "open_video_modal_edit",
-    "close_video_modal",
-    "validate_video_modal",
-    "save_video_modal"
+    "delete_workspace_video"
   ]
 
   @impl true
@@ -47,8 +41,7 @@ defmodule RumblWeb.PageLive.Home do
 
   @impl true
   def handle_params(params, _uri, socket) do
-    {:noreply,
-     VideoState.apply_live_action(socket, socket.assigns.live_action, params, @ring_samples)}
+    {:noreply, apply_home_live_action(socket, socket.assigns.live_action, params)}
   end
 
   @impl true
@@ -57,10 +50,6 @@ defmodule RumblWeb.PageLive.Home do
      socket
      |> assign(:active_panel, :rings)
      |> VideoState.clear_ring_workspace()}
-  end
-
-  def handle_event("select_panel", %{"panel" => "videos"}, socket) do
-    {:noreply, VideoState.show_videos_panel(socket)}
   end
 
   def handle_event("select_panel", %{"panel" => "requests"}, socket) do
@@ -89,4 +78,23 @@ defmodule RumblWeb.PageLive.Home do
   def handle_event(event, params, socket) when event in @video_events do
     VideoState.handle_event(event, params, socket, @ring_samples)
   end
+
+  defp apply_home_live_action(socket, :rings, _params) do
+    VideoState.apply_live_action(socket, :rings, %{}, @ring_samples)
+  end
+
+  defp apply_home_live_action(socket, :ring, %{"ring_id" => ring_id} = params) do
+    VideoState.apply_live_action(
+      socket,
+      :ring,
+      %{"ring_id" => ring_id, "video" => params["video"]},
+      @ring_samples
+    )
+  end
+
+  defp apply_home_live_action(socket, :requests, _params) do
+    VideoState.apply_live_action(socket, :requests, %{}, @ring_samples)
+  end
+
+  defp apply_home_live_action(socket, _live_action, _params), do: socket
 end

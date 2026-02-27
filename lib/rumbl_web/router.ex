@@ -31,11 +31,11 @@ defmodule RumblWeb.Router do
       live "/rings", PageLive.Home, :rings
       live "/rings/:ring_id", PageLive.Home, :ring
       live "/invitations", PageLive.Home, :requests
-      live "/videos", PageLive.Home, :videos
-      live "/videos/new", PageLive.Home, :video_new
-      live "/videos/:id/edit", PageLive.Home, :video_edit
-      live "/videos/:id", PageLive.Home, :video_show
-      live "/watch/:id", PageLive.Home, :video_watch
+      live "/videos", VideoLive.Index, :index
+      live "/videos/new", VideoLive.Form, :new
+      live "/videos/:id/edit", VideoLive.Form, :edit
+      live "/videos/:id", VideoLive.Show, :show
+      live "/watch/:id", VideoLive.Watch, :watch
     end
 
     ## Live Routes (current_user)

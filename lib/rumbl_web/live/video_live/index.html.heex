@@ -3,58 +3,136 @@
   current_user={@current_user}
   current_scope={@current_scope}
   show_nav={false}
+  main_class="min-h-screen p-0"
+  content_class="min-h-screen w-full max-w-none"
 >
-  <section class="rumbl-page">
-    <header class="rumbl-page-header">
-      <p class="rumbl-page-kicker">Library</p>
-      <div class="flex items-center justify-between gap-3">
-        <h1 class="rumbl-page-title">My Videos</h1>
-        <.link id="videos-add-button" navigate={~p"/videos/new"} class="rumbl-tab is-cta">
-          Add Video
-        </.link>
-      </div>
-      <p class="rumbl-page-subtitle">
-        Browse your uploads and jump into watch, edit, or annotation flows.
-      </p>
-    </header>
+  <section class="rumbl-shell">
+    <aside class="rumbl-rail">
+      <.link id="videos-logo-entry" navigate={~p"/rings"} class="rumbl-rail-logo">
+        <img src={~p"/images/logo.png"} alt="Rumbl logo" class="h-8 w-8 object-contain" />
+      </.link>
+      <div class="rumbl-rail-divider" />
+      <button type="button" class="rumbl-rail-node">AR</button>
+      <button type="button" class="rumbl-rail-node">FC</button>
+      <button type="button" class="rumbl-rail-node">LC</button>
+      <button type="button" class="rumbl-rail-node is-add">
+        <.icon name="hero-plus" class="size-6" />
+      </button>
+    </aside>
 
-    <div id="videos" phx-update="stream" class="rumbl-video-stack">
-      <article class="hidden only:block rumbl-empty-card">
-        <p class="text-sm text-base-content/70">
-          No videos yet. Start by adding your first upload.
-        </p>
-      </article>
+    <div class="rumbl-main">
+      <aside class="rumbl-panel">
+        <div class="rumbl-panel-search">Find or start a ring</div>
+        <div class="rumbl-panel-nav">
+          <.link id="videos-panel-my-rings" navigate={~p"/rings"} class="rumbl-panel-item">
+            <.icon name="hero-user-group" class="size-4" /> My Rings
+          </.link>
 
-      <article :for={{id, video} <- @streams.videos} id={id} class="rumbl-video-card-row">
-        <div class="min-w-0">
-          <p class="truncate text-base font-semibold text-[#f4f7ff]">{video.title}</p>
-          <p class="truncate text-xs text-base-content/60">
-            {if(video.category, do: video.category.name, else: "Uncategorized")} • {Calendar.strftime(
-              video.inserted_at,
-              "%b %d, %Y"
-            )}
+          <.link
+            id="videos-panel-my-videos"
+            navigate={~p"/videos"}
+            class={["rumbl-panel-item", "is-active"]}
+          >
+            <.icon name="hero-play-circle" class="size-4" /> My Videos
+          </.link>
+
+          <.link
+            id="videos-panel-invitation-requests"
+            navigate={~p"/invitations"}
+            class="rumbl-panel-item"
+          >
+            <.icon name="hero-envelope" class="size-4" /> Invitation Requests
+          </.link>
+        </div>
+      </aside>
+
+      <main class="rumbl-content">
+        <section id="my-videos-section" class="space-y-5">
+          <div class="rumbl-content-header">
+            <h1 class="text-xl font-bold tracking-tight">My Videos</h1>
+            <.link id="videos-add-button" navigate={~p"/videos/new"} class="rumbl-tab is-cta">
+              Add Video
+            </.link>
+          </div>
+
+          <div id="videos" phx-update="stream" class="rumbl-video-stack">
+            <article class="hidden only:block rumbl-empty-card">
+              <p class="text-sm text-base-content/70">
+                No videos yet. Start by adding your first upload.
+              </p>
+            </article>
+
+            <article :for={{id, video} <- @streams.videos} id={id} class="rumbl-video-card-row">
+              <div class="min-w-0">
+                <p class="truncate text-base font-semibold text-[#f4f7ff]">{video.title}</p>
+                <p class="truncate text-xs text-base-content/60">
+                  {if(video.category, do: video.category.name, else: "Uncategorized")} • {Calendar.strftime(
+                    video.inserted_at,
+                    "%b %d, %Y"
+                  )}
+                </p>
+              </div>
+              <div class="rumbl-video-row-actions">
+                <.link navigate={~p"/videos/#{video}/edit"} class="rumbl-mini-action">Edit</.link>
+                <button
+                  type="button"
+                  phx-click="delete"
+                  phx-value-id={video.slug}
+                  data-confirm="Delete this video?"
+                  class="rumbl-mini-action is-danger"
+                >
+                  Delete
+                </button>
+              </div>
+            </article>
+          </div>
+
+          <p :if={@videos_empty?} class="text-sm text-base-content/70">
+            You haven't added any videos yet.
+            <.link navigate={~p"/videos/new"} class="rumbl-inline-link">
+              Add your first video
+            </.link>
+          </p>
+        </section>
+      </main>
+
+      <aside class="rumbl-active-now">
+        <h2 class="rumbl-active-now-title">Active Now</h2>
+        <div class="rumbl-active-now-card">
+          <p class="rumbl-active-now-headline">It's quiet for now...</p>
+          <p class="rumbl-active-now-copy">
+            When a ring member starts an activity, you'll see it here.
           </p>
         </div>
-        <div class="rumbl-video-row-actions">
-          <.link navigate={~p"/videos/#{video}/edit"} class="rumbl-mini-action">Edit</.link>
-          <button
-            type="button"
-            phx-click="delete"
-            phx-value-id={video.slug}
-            data-confirm="Delete this video?"
-            class="rumbl-mini-action is-danger"
-          >
-            Delete
-          </button>
-        </div>
-      </article>
+      </aside>
     </div>
 
-    <p :if={@videos_empty?} class="text-sm text-base-content/70">
-      You haven't added any videos yet.
-      <.link navigate={~p"/videos/new"} class="rumbl-inline-link">
-        Add your first video
-      </.link>
-    </p>
+    <%= if @current_user do %>
+      <div class="rumbl-bottom-profile-wrap">
+        <div class="rumbl-bottom-profile">
+          <.link
+            id="videos-bottom-profile"
+            navigate={~p"/users/#{@current_user.id}"}
+            class="rumbl-bottom-profile-main"
+          >
+            <div class="rumbl-profile-avatar">
+              {String.first(@current_user.username || @current_user.name || "R")}
+            </div>
+            <div class="min-w-0">
+              <p class="truncate text-sm font-semibold text-[#f2f5ff]">{@current_user.name}</p>
+              <p class="truncate text-xs text-[#9ea9c5]">@{@current_user.username}</p>
+            </div>
+          </.link>
+          <.link
+            id="videos-bottom-logout"
+            href={~p"/sessions"}
+            method="delete"
+            class="rumbl-bottom-profile-logout"
+          >
+            <.icon name="hero-arrow-left-on-rectangle" class="size-4" />
+          </.link>
+        </div>
+      </div>
+    <% end %>
   </section>
 </Layouts.app>

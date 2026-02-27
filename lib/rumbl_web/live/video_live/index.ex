@@ -1,6 +1,32 @@
 defmodule RumblWeb.VideoLive.Index do
+  use RumblWeb, :live_view
+
   alias Rumbl.Multimedia
   alias RumblWeb.VideoLive.{Form, Show, Watch}
+
+  @impl true
+  def mount(_params, _session, socket) do
+    videos = Multimedia.list_user_videos(socket.assigns.current_user)
+
+    {:ok,
+     socket
+     |> assign(:page_title, "My Videos")
+     |> assign(:videos_empty?, videos == [])
+     |> stream(:videos, videos)}
+  end
+
+  @impl true
+  def handle_event("delete", %{"id" => slug}, socket) do
+    video = Multimedia.get_user_video!(socket.assigns.current_user, slug)
+    {:ok, _video} = Multimedia.delete_video(video)
+    videos = Multimedia.list_user_videos(socket.assigns.current_user)
+
+    {:noreply,
+     socket
+     |> put_flash(:info, "Video deleted successfully.")
+     |> assign(:videos_empty?, videos == [])
+     |> stream(:videos, videos, reset: true)}
+  end
 
   def init(socket, ring_options) do
     socket

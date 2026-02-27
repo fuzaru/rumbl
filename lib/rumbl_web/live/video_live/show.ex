@@ -1,5 +1,22 @@
 defmodule RumblWeb.VideoLive.Show do
+  use RumblWeb, :live_view
+
   alias Rumbl.Multimedia
+
+  @impl true
+  def mount(_params, _session, socket) do
+    {:ok, socket}
+  end
+
+  @impl true
+  def handle_params(%{"id" => id}, _uri, socket) do
+    video = Multimedia.get_video!(id)
+
+    {:noreply,
+     socket
+     |> assign(:page_title, video.title)
+     |> assign(:video, video)}
+  end
 
   def clear_workspace(socket) do
     socket
