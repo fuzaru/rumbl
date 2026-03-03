@@ -30,7 +30,11 @@ defmodule RumblWeb.Router do
       on_mount: [{RumblWeb.UserLiveAuth, :ensure_authenticated}] do
       live "/rings", PageLive.Home, :rings
       live "/rings/:ring_id", PageLive.Home, :ring
+      live "/rings/new", RingLive.NewRing, :new
+      live "/rings/join", RingLive.JoinRing, :join
+
       live "/invitations", PageLive.Home, :requests
+
       live "/videos", VideoLive.Index, :index
       live "/videos/new", VideoLive.Form, :new
       live "/videos/:id/edit", VideoLive.Form, :edit

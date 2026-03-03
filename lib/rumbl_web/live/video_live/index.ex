@@ -4,6 +4,12 @@ defmodule RumblWeb.VideoLive.Index do
   alias Rumbl.Multimedia
   alias RumblWeb.VideoLive.{Form, Show, Watch}
 
+  @ring_shortcuts [
+    %{id: "alpha", name: "Alpha Ring"},
+    %{id: "focus", name: "Focus Ring"},
+    %{id: "launch", name: "Launch Circle"}
+  ]
+
   @impl true
   def mount(_params, _session, socket) do
     videos = Multimedia.list_user_videos(socket.assigns.current_user)
@@ -11,6 +17,7 @@ defmodule RumblWeb.VideoLive.Index do
     {:ok,
      socket
      |> assign(:page_title, "My Videos")
+     |> assign(:rings, @ring_shortcuts)
      |> assign(:videos_empty?, videos == [])
      |> stream(:videos, videos)}
   end

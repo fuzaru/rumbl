@@ -19,9 +19,17 @@
         <img src={~p"/images/logo.png"} alt="Rumbl logo" class="h-8 w-8 object-contain" />
       </.link>
       <div class="rumbl-rail-divider" />
-      <button type="button" class="rumbl-rail-node">AR</button>
-      <button type="button" class="rumbl-rail-node">FC</button>
-      <button type="button" class="rumbl-rail-node">LC</button>
+      <.link
+        :for={ring <- @rings}
+        id={"rail-ring-#{ring.id}"}
+        navigate={~p"/rings/#{ring.id}"}
+        class={[
+          "rumbl-rail-node",
+          @selected_ring && @selected_ring.id == ring.id && "is-active"
+        ]}
+      >
+        {String.first(ring.name)}
+      </.link>
       <button type="button" class="rumbl-rail-node is-add">
         <.icon name="hero-plus" class="size-6" />
       </button>
@@ -242,22 +250,20 @@
                   >
                     All
                   </button>
-                  <button
+                  <.link
                     id="rings-new-button"
-                    type="button"
-                    phx-click="new_ring"
+                    navigate={~p"/rings/new"}
                     class="rumbl-tab is-cta"
                   >
                     New Ring
-                  </button>
-                  <button
+                  </.link>
+                  <.link
                     id="rings-join-button"
-                    type="button"
-                    phx-click="join_ring"
+                    navigate={~p"/rings/join"}
                     class="rumbl-tab"
                   >
                     Join Ring
-                  </button>
+                  </.link>
                 </div>
               </div>
 

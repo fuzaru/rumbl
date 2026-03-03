@@ -12,9 +12,17 @@
         <img src={~p"/images/logo.png"} alt="Rumbl logo" class="h-8 w-8 object-contain" />
       </.link>
       <div class="rumbl-rail-divider" />
-      <button type="button" class="rumbl-rail-node">AR</button>
-      <button type="button" class="rumbl-rail-node">FC</button>
-      <button type="button" class="rumbl-rail-node">LC</button>
+      <.link
+        :for={ring <- @rings}
+        id={"video-form-rail-ring-#{ring.id}"}
+        navigate={~p"/rings/#{ring.id}"}
+        class={[
+          "rumbl-rail-node",
+          @return_ring_id == ring.id && "is-active"
+        ]}
+      >
+        {String.first(ring.name)}
+      </.link>
       <button type="button" class="rumbl-rail-node is-add">
         <.icon name="hero-plus" class="size-6" />
       </button>

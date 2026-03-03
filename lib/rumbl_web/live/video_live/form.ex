@@ -9,6 +9,7 @@ defmodule RumblWeb.VideoLive.Form do
     {"Focus Ring", "focus"},
     {"Launch Circle", "launch"}
   ]
+  @ring_shortcuts Enum.map(@ring_options, fn {name, id} -> %{id: id, name: name} end)
 
   @impl true
   def mount(_params, _session, socket) do
@@ -16,6 +17,7 @@ defmodule RumblWeb.VideoLive.Form do
      socket
      |> assign(:categories, Multimedia.category_options())
      |> assign(:ring_options, @ring_options)
+     |> assign(:rings, @ring_shortcuts)
      |> assign(:return_ring_id, nil)}
   end
 
