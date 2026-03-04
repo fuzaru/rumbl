@@ -30,9 +30,9 @@
       >
         {String.first(ring.name)}
       </.link>
-      <button type="button" class="rumbl-rail-node is-add">
+      <.link id="home-rail-add" navigate={~p"/rings/new"} class="rumbl-rail-node is-add">
         <.icon name="hero-plus" class="size-6" />
-      </button>
+      </.link>
     </aside>
 
     <div class="rumbl-main">
@@ -120,6 +120,15 @@
               <div class="rumbl-content-header">
                 <h1 class="text-xl font-bold tracking-tight">{@selected_ring.name} Workspace</h1>
                 <div class="flex items-center gap-2">
+                  <button
+                    :if={@current_user && @selected_ring.owner_id == @current_user.id}
+                    id="ring-workspace-invite"
+                    type="button"
+                    phx-click="show_invite_code"
+                    class="rumbl-tab"
+                  >
+                    Invite
+                  </button>
                   <.link
                     id="ring-workspace-add-video"
                     navigate={~p"/videos/new?#{[ring: @selected_ring.id]}"}
@@ -344,6 +353,49 @@
             <.icon name="hero-arrow-left-on-rectangle" class="size-4" />
           </.link>
         </div>
+      </div>
+    <% end %>
+
+    <%= if @invite_modal_open do %>
+      <div class="rumbl-modal-layer">
+        <button
+          type="button"
+          class="rumbl-modal-backdrop"
+          phx-click="close_invite_modal"
+          aria-label="Close invite modal"
+        >
+        </button>
+        <section id="ring-invite-modal" class="rumbl-video-modal">
+          <div class="rumbl-video-modal-header">
+            <h2 class="rumbl-video-modal-title">Invite to {@selected_ring.name}</h2>
+            <button
+              id="ring-invite-modal-close"
+              type="button"
+              phx-click="close_invite_modal"
+              class="rumbl-video-modal-close"
+              aria-label="Close"
+            >
+              <.icon name="hero-x-mark" class="size-5" />
+            </button>
+          </div>
+
+          <div class="space-y-4">
+            <p class="text-sm text-base-content/70">
+              Share this code with users who want to join your ring.
+            </p>
+            <div class="rounded-xl border border-white/15 bg-black/25 px-4 py-3">
+              <p class="text-xs uppercase tracking-wider text-base-content/60">Invite Code</p>
+              <p class="mt-1 text-xl font-semibold tracking-widest text-[#f2f5ff]">
+                {@invite_modal_code}
+              </p>
+            </div>
+            <div class="rumbl-video-modal-actions">
+              <button type="button" phx-click="close_invite_modal" class="rumbl-tab is-cta">
+                Done
+              </button>
+            </div>
+          </div>
+        </section>
       </div>
     <% end %>
   </section>

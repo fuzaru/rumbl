@@ -29,9 +29,9 @@ defmodule RumblWeb.Router do
     live_session :authenticated_user,
       on_mount: [{RumblWeb.UserLiveAuth, :ensure_authenticated}] do
       live "/rings", PageLive.Home, :rings
-      live "/rings/:ring_id", PageLive.Home, :ring
       live "/rings/new", RingLive.NewRing, :new
       live "/rings/join", RingLive.JoinRing, :join
+      live "/rings/:ring_id", PageLive.Home, :ring
 
       live "/invitations", PageLive.Home, :requests
 

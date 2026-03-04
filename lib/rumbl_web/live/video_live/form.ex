@@ -3,21 +3,18 @@ defmodule RumblWeb.VideoLive.Form do
 
   alias Rumbl.Multimedia
   alias Rumbl.Multimedia.Video
-
-  @ring_options [
-    {"Alpha Ring", "alpha"},
-    {"Focus Ring", "focus"},
-    {"Launch Circle", "launch"}
-  ]
-  @ring_shortcuts Enum.map(@ring_options, fn {name, id} -> %{id: id, name: name} end)
+  alias Rumbl.Rings
 
   @impl true
   def mount(_params, _session, socket) do
+    rings = Rings.list_user_rings(socket.assigns.current_user)
+    ring_options = Enum.map(rings, fn ring -> {ring.name, ring.id} end)
+
     {:ok,
      socket
      |> assign(:categories, Multimedia.category_options())
-     |> assign(:ring_options, @ring_options)
-     |> assign(:rings, @ring_shortcuts)
+     |> assign(:ring_options, ring_options)
+     |> assign(:rings, rings)
      |> assign(:return_ring_id, nil)}
   end
 

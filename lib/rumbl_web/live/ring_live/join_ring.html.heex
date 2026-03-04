@@ -1,5 +1,140 @@
-<Layouts.app flash={@flash} current_user={@current_user} current_scope={@current_scope}>
-  <section class="p-6">
-    <h1 class="text-2xl font-semibold">Join Ring</h1>
+<Layouts.app
+  flash={@flash}
+  current_user={@current_user}
+  current_scope={@current_scope}
+  show_nav={false}
+  main_class="min-h-screen p-0"
+  content_class="min-h-screen w-full max-w-none"
+>
+  <section class="rumbl-shell">
+    <aside class="rumbl-rail">
+      <.link id="join-ring-logo-entry" navigate={~p"/rings"} class="rumbl-rail-logo">
+        <img src={~p"/images/logo.png"} alt="Rumbl logo" class="h-8 w-8 object-contain" />
+      </.link>
+      <div class="rumbl-rail-divider" />
+      <.link
+        :for={ring <- @rings}
+        id={"join-ring-rail-ring-#{ring.id}"}
+        navigate={~p"/rings/#{ring.id}"}
+        class="rumbl-rail-node"
+      >
+        {String.first(ring.name)}
+      </.link>
+      <.link id="join-ring-rail-add" navigate={~p"/rings/new"} class="rumbl-rail-node is-add">
+        <.icon name="hero-plus" class="size-6" />
+      </.link>
+    </aside>
+
+    <div class="rumbl-main">
+      <aside class="rumbl-panel">
+        <div class="rumbl-panel-search">Find or start a ring</div>
+        <div class="rumbl-panel-nav">
+          <.link
+            id="join-ring-panel-rings"
+            navigate={~p"/rings"}
+            class={["rumbl-panel-item", "is-active"]}
+          >
+            <.icon name="hero-user-group" class="size-4" /> My Rings
+          </.link>
+          <.link id="join-ring-panel-videos" navigate={~p"/videos"} class="rumbl-panel-item">
+            <.icon name="hero-play-circle" class="size-4" /> My Videos
+          </.link>
+          <.link
+            id="join-ring-panel-invitations"
+            navigate={~p"/invitations"}
+            class="rumbl-panel-item"
+          >
+            <.icon name="hero-envelope" class="size-4" /> Invitation Requests
+          </.link>
+        </div>
+      </aside>
+
+      <main class="rumbl-content">
+        <section class="rumbl-empty-card">
+          <p class="text-sm text-base-content/70">
+            Enter a ring invite code shared by a ring owner.
+          </p>
+        </section>
+      </main>
+
+      <aside class="rumbl-active-now">
+        <h2 class="rumbl-active-now-title">Active Now</h2>
+        <div class="rumbl-active-now-card">
+          <p class="rumbl-active-now-headline">It's quiet for now...</p>
+          <p class="rumbl-active-now-copy">
+            When a ring member starts an activity, you'll see it here.
+          </p>
+        </div>
+      </aside>
+    </div>
+
+    <%= if @current_user do %>
+      <div class="rumbl-bottom-profile-wrap">
+        <div class="rumbl-bottom-profile">
+          <.link
+            id="join-ring-bottom-profile"
+            navigate={~p"/users/#{@current_user.id}"}
+            class="rumbl-bottom-profile-main"
+          >
+            <div class="rumbl-profile-avatar">
+              {String.first(@current_user.username || @current_user.name || "R")}
+            </div>
+            <div class="min-w-0">
+              <p class="truncate text-sm font-semibold text-[#f2f5ff]">{@current_user.name}</p>
+              <p class="truncate text-xs text-[#9ea9c5]">@{@current_user.username}</p>
+            </div>
+          </.link>
+          <.link
+            id="join-ring-bottom-logout"
+            href={~p"/sessions"}
+            method="delete"
+            class="rumbl-bottom-profile-logout"
+          >
+            <.icon name="hero-arrow-left-on-rectangle" class="size-4" />
+          </.link>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="rumbl-modal-layer">
+      <.link navigate={~p"/rings"} class="rumbl-modal-backdrop" aria-label="Close join ring modal">
+      </.link>
+      <section id="join-ring-modal" class="rumbl-video-modal">
+        <div class="rumbl-video-modal-header">
+          <h2 class="rumbl-video-modal-title">Join Ring</h2>
+          <.link
+            id="join-ring-modal-close"
+            navigate={~p"/rings"}
+            class="rumbl-video-modal-close"
+            aria-label="Close"
+          >
+            <.icon name="hero-x-mark" class="size-5" />
+          </.link>
+        </div>
+
+        <.form
+          for={@form}
+          id="join-ring-form"
+          phx-change="validate"
+          phx-submit="save"
+          class="rumbl-form-stack"
+        >
+          <.input
+            field={@form[:invite_code]}
+            type="text"
+            label="Invite Code"
+            placeholder="Enter code (e.g. A1B2C3D4)"
+            required
+          />
+
+          <div class="rumbl-video-modal-actions">
+            <.link id="join-ring-cancel" navigate={~p"/rings"} class="rumbl-tab">
+              Cancel
+            </.link>
+            <button type="submit" class="rumbl-tab is-cta">Join Ring</button>
+          </div>
+        </.form>
+      </section>
+    </div>
   </section>
 </Layouts.app>
