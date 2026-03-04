@@ -3,7 +3,7 @@ defmodule Rumbl.Rings.Ring do
   import Ecto.Changeset
 
   alias Rumbl.Accounts.User
-  alias Rumbl.Rings.Membership
+  alias Rumbl.Rings.{Membership, RingInvitation}
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -13,6 +13,7 @@ defmodule Rumbl.Rings.Ring do
 
     belongs_to :owner, User, type: :id
     has_many :memberships, Membership
+    has_many :invitations, RingInvitation
 
     timestamps()
   end

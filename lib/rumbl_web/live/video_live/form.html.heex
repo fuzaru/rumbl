@@ -8,7 +8,11 @@
 >
   <section class="rumbl-shell">
     <aside class="rumbl-rail">
-      <.link id="video-form-logo-entry" navigate={~p"/rings"} class="rumbl-rail-logo">
+      <.link
+        id="video-form-logo-entry"
+        navigate={~p"/rings"}
+        class={["rumbl-rail-logo", "is-active"]}
+      >
         <img src={~p"/images/logo.png"} alt="Rumbl logo" class="h-8 w-8 object-contain" />
       </.link>
       <div class="rumbl-rail-divider" />
@@ -30,7 +34,13 @@
 
     <div class="rumbl-main">
       <aside class="rumbl-panel">
-        <div class="rumbl-panel-search">Find or start a ring</div>
+        <.link
+          id="video-form-panel-search"
+          navigate={~p"/rings?search=1"}
+          class="rumbl-panel-search block"
+        >
+          Find a ring
+        </.link>
         <div class="rumbl-panel-nav">
           <.link id="video-form-panel-rings" navigate={~p"/rings"} class="rumbl-panel-item">
             <.icon name="hero-user-group" class="size-4" /> My Rings

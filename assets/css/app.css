@@ -500,6 +500,11 @@ html.auth-switching .auth-card {
   background: #2a3652;
 }
 
+.rumbl-rail-node.is-active {
+  border-color: rgba(144, 182, 255, 0.8);
+  background: #2a3652;
+}
+
 .rumbl-rail-node.is-add {
   color: #8fe6a8;
   background: #16281f;
@@ -531,6 +536,13 @@ html.auth-switching .auth-card {
   padding: 0.65rem 0.85rem;
   color: rgba(255, 255, 255, 0.52);
   font-size: 0.92rem;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.rumbl-panel-search:hover {
+  background: rgba(0, 0, 0, 0.45);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .rumbl-panel-nav {
@@ -894,6 +906,30 @@ html.auth-switching .auth-card {
   color: #c0c9de;
   font-size: 0.92rem;
   line-height: 1.35;
+}
+
+.rumbl-member-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  border-radius: 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.45rem 0.55rem;
+}
+
+.rumbl-member-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 9999px;
+  background: #a6b0ca;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.rumbl-member-dot.is-online {
+  background: #3ee37d;
+  box-shadow: 0 0 0 1px rgba(20, 96, 45, 0.75);
 }
 
 .rumbl-avatar {

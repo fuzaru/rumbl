@@ -33,6 +33,44 @@ defmodule Rumbl.Accounts do
     Repo.get_by(User, attrs)
   end
 
+  def search_users(query, opts \\ []) do
+    term = query |> to_string() |> String.trim()
+
+    if term == "" do
+      []
+    else
+      excluded_ids = Keyword.get(opts, :exclude_ids, [])
+      limit = Keyword.get(opts, :limit, 8)
+      pattern = "%#{term}%"
+
+      base_query =
+        from(u in User,
+          where: ilike(u.username, ^pattern) or ilike(u.name, ^pattern),
+          order_by: [asc: u.username],
+          limit: ^limit
+        )
+
+      base_query =
+        if excluded_ids == [] do
+          base_query
+        else
+          from(u in base_query, where: u.id not in ^excluded_ids)
+        end
+
+      base_query
+      |> Repo.all()
+    end
+  end
+
+  def list_users_by_ids(ids) when is_list(ids) do
+    if ids == [] do
+      []
+    else
+      from(u in User, where: u.id in ^ids)
+      |> Repo.all()
+    end
+  end
+
   @doc """
   Registers a new user.
   """

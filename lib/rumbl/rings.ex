@@ -7,7 +7,7 @@ defmodule Rumbl.Rings do
   alias Ecto.Multi
   alias Rumbl.Accounts.User
   alias Rumbl.Repo
-  alias Rumbl.Rings.{Membership, Ring}
+  alias Rumbl.Rings.{Membership, Ring, RingInvitation}
 
   def list_user_rings(%User{id: user_id}) do
     from(r in Ring,
@@ -94,9 +94,124 @@ defmodule Rumbl.Rings do
     Ring.changeset(ring, attrs)
   end
 
+  def list_owned_rings(%User{id: user_id}) do
+    from(r in Ring, where: r.owner_id == ^user_id, order_by: [asc: r.name])
+    |> Repo.all()
+  end
+
+  def list_invitation_requests(%User{id: user_id}) do
+    from(inv in RingInvitation,
+      where: inv.invitee_id == ^user_id and inv.status == "pending",
+      preload: [:ring, :inviter],
+      order_by: [desc: inv.inserted_at]
+    )
+    |> Repo.all()
+  end
+
+  def list_pending_invites_for_ring(ring_id) when is_binary(ring_id) do
+    from(inv in RingInvitation,
+      where: inv.ring_id == ^ring_id and inv.status == "pending"
+    )
+    |> Repo.all()
+  end
+
+  def send_ring_invitation(%User{} = inviter, ring_id, invitee_id)
+      when is_binary(ring_id) and is_integer(invitee_id) do
+    case Repo.get(Ring, ring_id) do
+      nil ->
+        {:error, :ring_not_found}
+
+      %Ring{} = ring ->
+        cond do
+          ring.owner_id != inviter.id ->
+            {:error, :not_allowed}
+
+          invitee_id == inviter.id ->
+            {:error, :cannot_invite_self}
+
+          member?(ring_id, invitee_id) ->
+            {:error, :already_member}
+
+          pending_invite_exists?(ring_id, invitee_id) ->
+            {:error, :already_invited}
+
+          true ->
+            RingInvitation.changeset(%RingInvitation{}, %{
+              "ring_id" => ring_id,
+              "inviter_id" => inviter.id,
+              "invitee_id" => invitee_id,
+              "status" => "pending"
+            })
+            |> Repo.insert()
+        end
+    end
+  end
+
+  def respond_to_ring_invitation(%User{} = invitee, invitation_id, action)
+      when is_binary(invitation_id) and action in ["accept", "decline"] do
+    case Repo.get(RingInvitation, invitation_id) do
+      %RingInvitation{invitee_id: invitee_id, status: "pending"} = invitation
+      when invitee_id == invitee.id ->
+        apply_invitation_action(invitation, action)
+
+      _ ->
+        {:error, :not_found}
+    end
+  end
+
+  def list_ring_members(ring_id) when is_binary(ring_id) do
+    from(m in Membership,
+      where: m.ring_id == ^ring_id,
+      join: u in assoc(m, :user),
+      order_by: [asc: u.username],
+      select: %{
+        id: u.id,
+        name: u.name,
+        username: u.username,
+        role: m.role
+      }
+    )
+    |> Repo.all()
+  end
+
   defp member?(ring_id, user_id) do
     from(m in Membership, where: m.ring_id == ^ring_id and m.user_id == ^user_id)
     |> Repo.exists?()
+  end
+
+  defp pending_invite_exists?(ring_id, invitee_id) do
+    from(inv in RingInvitation,
+      where: inv.ring_id == ^ring_id and inv.invitee_id == ^invitee_id and inv.status == "pending"
+    )
+    |> Repo.exists?()
+  end
+
+  defp apply_invitation_action(invitation, "decline") do
+    invitation
+    |> RingInvitation.changeset(%{"status" => "declined"})
+    |> Repo.update()
+  end
+
+  defp apply_invitation_action(invitation, "accept") do
+    Multi.new()
+    |> Multi.update(:invitation, RingInvitation.changeset(invitation, %{"status" => "accepted"}))
+    |> Multi.run(:membership, fn repo, _changes ->
+      if member?(invitation.ring_id, invitation.invitee_id) do
+        {:ok, :already_member}
+      else
+        Membership.changeset(%Membership{}, %{
+          "ring_id" => invitation.ring_id,
+          "user_id" => invitation.invitee_id,
+          "role" => "member"
+        })
+        |> repo.insert()
+      end
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{invitation: updated}} -> {:ok, updated}
+      {:error, _step, reason, _changes} -> {:error, reason}
+    end
   end
 
   defp generate_invite_code do

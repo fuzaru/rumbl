@@ -43,6 +43,29 @@ defmodule Rumbl.Multimedia do
   end
 
   @doc """
+  Searches videos across a set of rings by title.
+  """
+  def search_videos_for_rings(ring_ids, query, opts \\ [])
+      when is_list(ring_ids) and is_binary(query) do
+    trimmed_query = String.trim(query)
+    limit = Keyword.get(opts, :limit, 12)
+
+    if ring_ids == [] or trimmed_query == "" do
+      []
+    else
+      pattern = "%#{trimmed_query}%"
+
+      from(v in Video,
+        where: v.ring_id in ^ring_ids and ilike(v.title, ^pattern),
+        order_by: [desc: v.inserted_at],
+        limit: ^limit
+      )
+      |> Repo.all()
+      |> Repo.preload([:user])
+    end
+  end
+
+  @doc """
   Gets a single video by slug.
   """
   def get_video!(slug) when is_binary(slug) do
