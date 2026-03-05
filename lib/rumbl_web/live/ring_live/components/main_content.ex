@@ -85,47 +85,67 @@ defmodule RumblWeb.RingLive.Components.MainContent do
             </div>
 
             <%= if @selected_video do %>
-              <div class="rumbl-workspace-main grid items-start gap-4 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
-                <article id="ring-selected-video" class="rumbl-video-stage">
-                  <div class="rumbl-video-stage-top">
-                    <h3 class="text-lg font-semibold">{@selected_video.title}</h3>
-                    <span class="text-xs text-base-content/60">
-                      by {if(@selected_video.user, do: @selected_video.user.name, else: "Unknown")} • {Calendar.strftime(
-                        @selected_video.inserted_at,
-                        "%b %d, %Y"
-                      )}
-                    </span>
-                  </div>
-                  <%= if Rumbl.Multimedia.Video.youtube_id(@selected_video) do %>
-                    <div class="rumbl-video-embed-wrap">
-                      <iframe
-                        id="ring-video-embed"
-                        class="rumbl-video-embed"
-                        src={
-                          video_embed_src(
-                            @selected_video,
-                            if(is_integer(@selected_video_start_seconds),
-                              do: @selected_video_start_seconds,
-                              else: nil
+              <div class="rumbl-workspace-main grid items-stretch gap-4 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
+                <div class="rumbl-video-column">
+                  <article id="ring-selected-video" class="rumbl-video-stage">
+                    <div class="rumbl-video-stage-top">
+                      <h3 class="text-lg font-semibold">{@selected_video.title}</h3>
+                      <span class="text-xs text-base-content/60">
+                        by {if(@selected_video.user, do: @selected_video.user.name, else: "Unknown")} • {Calendar.strftime(
+                          @selected_video.inserted_at,
+                          "%b %d, %Y"
+                        )}
+                      </span>
+                    </div>
+                    <%= if Rumbl.Multimedia.Video.youtube_id(@selected_video) do %>
+                      <div class="rumbl-video-embed-wrap">
+                        <iframe
+                          id="ring-video-embed"
+                          class="rumbl-video-embed"
+                          src={
+                            video_embed_src(
+                              @selected_video,
+                              if(is_integer(@selected_video_start_seconds),
+                                do: @selected_video_start_seconds,
+                                else: nil
+                              )
                             )
-                          )
-                        }
-                        title={@selected_video.title}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        referrerpolicy="strict-origin-when-cross-origin"
-                        allowfullscreen
-                      >
-                      </iframe>
-                    </div>
-                  <% else %>
-                    <div class="rumbl-video-placeholder">
-                      <.icon name="hero-play-circle" class="size-10" />
-                      <p class="mt-2 text-sm text-base-content/70">
-                        Preview unavailable. This URL is not a supported YouTube link.
+                          }
+                          title={@selected_video.title}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          referrerpolicy="strict-origin-when-cross-origin"
+                          allowfullscreen
+                        >
+                        </iframe>
+                      </div>
+                    <% else %>
+                      <div class="rumbl-video-placeholder">
+                        <.icon name="hero-play-circle" class="size-10" />
+                        <p class="mt-2 text-sm text-base-content/70">
+                          Preview unavailable. This URL is not a supported YouTube link.
+                        </p>
+                      </div>
+                    <% end %>
+                  </article>
+
+                  <section id="annotation-preview" class="rumbl-annotation-preview">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-base-content/60">
+                      Selected Annotation
+                    </p>
+                    <%= if @selected_annotation do %>
+                      <p class="mt-2 text-xs font-mono text-[#94b7ff]">
+                        {RumblWeb.VideoLive.Watch.format_time(@selected_annotation.at)}
                       </p>
-                    </div>
-                  <% end %>
-                </article>
+                      <p class="rumbl-annotation-preview-body">
+                        {@selected_annotation.body}
+                      </p>
+                    <% else %>
+                      <p class="mt-2 text-sm text-base-content/65">
+                        Click an annotation message on the right to preview the full content here.
+                      </p>
+                    <% end %>
+                  </section>
+                </div>
 
                 <section id="video-annotations" class="rumbl-annotations">
                   <h3 class="text-sm font-semibold uppercase tracking-wide text-base-content/70">
@@ -142,9 +162,18 @@ defmodule RumblWeb.RingLive.Components.MainContent do
                         >
                           {RumblWeb.VideoLive.Watch.format_time(annotation.at)}
                         </button>
-                        <p class="mt-1 text-sm text-base-content/80">
+                        <button
+                          type="button"
+                          phx-click="preview_annotation"
+                          phx-value-annotation_id={annotation.id}
+                          class={[
+                            "rumbl-annotation-message",
+                            @selected_annotation && @selected_annotation.id == annotation.id &&
+                              "is-active"
+                          ]}
+                        >
                           {annotation.body}
-                        </p>
+                        </button>
                       </article>
                     <% end %>
                   </div>

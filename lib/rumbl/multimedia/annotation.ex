@@ -20,6 +20,7 @@ defmodule Rumbl.Multimedia.Annotation do
     annotation
     |> cast(attrs, [:body, :at])
     |> validate_required([:body, :at])
+    |> validate_length(:body, max: 255)
     |> validate_number(:at, greater_than_or_equal_to: 0)
   end
 end

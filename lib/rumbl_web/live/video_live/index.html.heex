@@ -141,9 +141,8 @@
             </div>
           <% else %>
             <%= for user <- @active_ring_users do %>
-              <.link
+              <div
                 id={"videos-active-now-user-#{user.id}"}
-                navigate={~p"/users/#{user.id}"}
                 class={["rumbl-presence-row", "rumbl-active-feed-row"]}
               >
                 <div class="rumbl-presence-avatar-wrap">
@@ -157,7 +156,7 @@
                   <p class="truncate text-xs text-[#8e9ab7]">{Enum.join(user.rings, ", ")}</p>
                 </div>
                 <span class="rumbl-presence-badge">LIVE</span>
-              </.link>
+              </div>
             <% end %>
           <% end %>
         </div>

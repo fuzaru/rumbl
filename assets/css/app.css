@@ -280,85 +280,6 @@ html.auth-switching .auth-card {
   gap: 1rem;
 }
 
-.rumbl-page-header {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding-bottom: 0.8rem;
-}
-
-.rumbl-page-kicker {
-  font-size: 0.74rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #8f9dc2;
-  font-weight: 700;
-}
-
-.rumbl-page-title {
-  margin-top: 0.25rem;
-  font-size: 1.7rem;
-  line-height: 1.1;
-  font-weight: 700;
-  color: #f4f7ff;
-}
-
-.rumbl-page-subtitle {
-  margin-top: 0.3rem;
-  color: #a8b4d1;
-  font-size: 0.95rem;
-}
-
-.rumbl-page-card {
-  border-radius: 0.9rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(10, 13, 20, 0.62);
-  padding: 1rem;
-}
-
-.rumbl-profile-card {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.rumbl-profile-lead {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.rumbl-avatar.rumbl-avatar-lg {
-  width: 3.1rem;
-  height: 3.1rem;
-  font-size: 1rem;
-}
-
-.rumbl-info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 0.65rem;
-}
-
-.rumbl-info-cell {
-  border-radius: 0.7rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.02);
-  padding: 0.6rem 0.7rem;
-}
-
-.rumbl-info-label {
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: #9aa7c8;
-}
-
-.rumbl-info-value {
-  margin-top: 0.18rem;
-  font-size: 0.96rem;
-  color: #f4f7ff;
-  font-weight: 600;
-}
-
 .rumbl-profile-page {
   position: relative;
   width: min(100%, 52rem);
@@ -487,18 +408,6 @@ html.auth-switching .auth-card {
 .rumbl-profile-row-action:hover {
   background: rgba(129, 145, 255, 0.2);
   border-color: rgba(129, 145, 255, 0.55);
-}
-
-.rumbl-profile-row-action.is-disabled {
-  opacity: 0.55;
-}
-
-.rumbl-profile-edit-card {
-  margin-top: 0.85rem;
-  border-radius: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(12, 16, 25, 0.9);
-  padding: 0.8rem;
 }
 
 .rumbl-video-stack {
@@ -1110,6 +1019,13 @@ html.auth-switching .auth-card {
   padding: 0.9rem;
 }
 
+.rumbl-video-column {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
 .rumbl-video-stage-top {
   display: flex;
   align-items: baseline;
@@ -1161,6 +1077,45 @@ html.auth-switching .auth-card {
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.03);
   padding: 0.58rem 0.62rem;
+}
+
+.rumbl-annotation-message {
+  margin-top: 0.25rem;
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-size: 0.9rem;
+  color: rgba(232, 238, 255, 0.78);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 140ms ease;
+}
+
+.rumbl-annotation-message:hover {
+  color: #edf2ff;
+}
+
+.rumbl-annotation-message.is-active {
+  color: #f4f7ff;
+}
+
+.rumbl-annotation-preview {
+  flex: 1 1 auto;
+  min-height: 8rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(10, 13, 20, 0.56);
+  padding: 0.85rem;
+}
+
+.rumbl-annotation-preview-body {
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: rgba(232, 238, 255, 0.9);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .rumbl-annotation-composer {

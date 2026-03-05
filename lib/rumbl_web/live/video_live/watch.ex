@@ -75,8 +75,13 @@ defmodule RumblWeb.VideoLive.Watch do
               {:ok, _annotation} ->
                 {:ok, reset_annotation_form(socket)}
 
-              {:error, _changeset} ->
-                {:error, Phoenix.LiveView.put_flash(socket, :error, "Could not add annotation.")}
+              {:error, changeset} ->
+                {:error,
+                 Phoenix.LiveView.put_flash(
+                   socket,
+                   :error,
+                   annotation_error_message(changeset)
+                 )}
             end
 
           :error ->
@@ -131,6 +136,18 @@ defmodule RumblWeb.VideoLive.Watch do
   end
 
   def parse_timestamp_to_ms(_), do: :error
+
+  defp annotation_error_message(changeset) do
+    body_errors = Keyword.get_values(changeset.errors, :body)
+
+    if Enum.any?(body_errors, fn {message, _opts} ->
+         String.contains?(message, "should be at most")
+       end) do
+      "Message is too long (maximum 255 characters)."
+    else
+      "Could not add annotation."
+    end
+  end
 
   defp build_user_token(nil), do: nil
 

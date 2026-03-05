@@ -66,6 +66,7 @@ defmodule RumblWeb.VideoLive.Index do
     socket
     |> Show.clear_workspace()
     |> Phoenix.Component.assign(:annotations, [])
+    |> Phoenix.Component.assign(:selected_annotation, nil)
     |> Phoenix.Component.assign(:selected_video_start_seconds, nil)
     |> Watch.reset_annotation_form()
   end
@@ -134,6 +135,17 @@ defmodule RumblWeb.VideoLive.Index do
       {:ok, socket} -> {:noreply, socket |> assign_annotations()}
       {:error, socket} -> {:noreply, socket}
     end
+  end
+
+  def dispatch_event("preview_annotation", %{"annotation_id" => annotation_id}, socket, _rings) do
+    selected_annotation =
+      with {id, ""} <- Integer.parse(annotation_id) do
+        Enum.find(socket.assigns.annotations, &(&1.id == id))
+      else
+        _ -> nil
+      end
+
+    {:noreply, Phoenix.Component.assign(socket, :selected_annotation, selected_annotation)}
   end
 
   def dispatch_event(
@@ -250,11 +262,19 @@ defmodule RumblWeb.VideoLive.Index do
   end
 
   defp assign_annotations(socket) do
-    Phoenix.Component.assign(
-      socket,
-      :annotations,
-      Watch.annotations_for_video(socket.assigns.selected_video)
-    )
+    annotations = Watch.annotations_for_video(socket.assigns.selected_video)
+
+    selected_annotation_id =
+      socket.assigns[:selected_annotation] && socket.assigns.selected_annotation.id
+
+    selected_annotation =
+      if selected_annotation_id do
+        Enum.find(annotations, &(&1.id == selected_annotation_id))
+      end
+
+    socket
+    |> Phoenix.Component.assign(:annotations, annotations)
+    |> Phoenix.Component.assign(:selected_annotation, selected_annotation)
   end
 
   defp modal_return_path(socket) do

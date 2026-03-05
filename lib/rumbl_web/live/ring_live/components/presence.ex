@@ -31,11 +31,7 @@ defmodule RumblWeb.RingLive.Components.Presence do
           <h3 class="rumbl-presence-heading">Online — {length(online_members)}</h3>
           <div class="space-y-1">
             <%= for member <- online_members do %>
-              <.link
-                id={"presence-online-#{member.id}"}
-                navigate={~p"/users/#{member.id}"}
-                class="rumbl-presence-row"
-              >
+              <div id={"presence-online-#{member.id}"} class="rumbl-presence-row">
                 <div class="rumbl-presence-avatar-wrap">
                   <div class="rumbl-presence-avatar">
                     {String.first(member.name || member.username || "U")}
@@ -47,7 +43,7 @@ defmodule RumblWeb.RingLive.Components.Presence do
                   <p class="truncate text-xs text-[#8e9ab7]">@{member.username}</p>
                 </div>
                 <span class="rumbl-presence-badge">APP</span>
-              </.link>
+              </div>
             <% end %>
           </div>
         </section>
@@ -56,11 +52,7 @@ defmodule RumblWeb.RingLive.Components.Presence do
           <h3 class="rumbl-presence-heading">Offline — {length(offline_members)}</h3>
           <div class="space-y-1">
             <%= for member <- offline_members do %>
-              <.link
-                id={"presence-offline-#{member.id}"}
-                navigate={~p"/users/#{member.id}"}
-                class="rumbl-presence-row is-offline"
-              >
+              <div id={"presence-offline-#{member.id}"} class="rumbl-presence-row is-offline">
                 <div class="rumbl-presence-avatar-wrap">
                   <div class="rumbl-presence-avatar">
                     {String.first(member.name || member.username || "U")}
@@ -71,7 +63,7 @@ defmodule RumblWeb.RingLive.Components.Presence do
                   <p class="truncate text-sm font-semibold">{member.name}</p>
                   <p class="truncate text-xs text-[#7d879f]">@{member.username}</p>
                 </div>
-              </.link>
+              </div>
             <% end %>
           </div>
         </section>
@@ -103,9 +95,8 @@ defmodule RumblWeb.RingLive.Components.Presence do
             </div>
           <% else %>
             <%= for entry <- active_entries do %>
-              <.link
+              <div
                 id={"active-now-user-#{entry.id}"}
-                navigate={~p"/users/#{entry.id}"}
                 class={["rumbl-presence-row", "rumbl-active-feed-row"]}
               >
                 <div class="rumbl-presence-avatar-wrap">
@@ -119,7 +110,7 @@ defmodule RumblWeb.RingLive.Components.Presence do
                   <p class="truncate text-xs text-[#8e9ab7]">{entry.subtitle}</p>
                 </div>
                 <span class="rumbl-presence-badge">APP</span>
-              </.link>
+              </div>
             <% end %>
           <% end %>
         </div>
