@@ -26,9 +26,11 @@ defmodule RumblWeb.RingLive.Components.MainContent do
                   type="button"
                   phx-click="open_video_modal_new"
                   phx-value-ring_id={@selected_ring.id}
-                  class="rumbl-tab is-cta"
+                  class="rumbl-toolbar-icon-action"
+                  aria-label="Add video"
+                  title="Add video"
                 >
-                  Add Video
+                  <.icon name="hero-plus" class="size-5" />
                 </button>
                 <button
                   :if={
@@ -38,9 +40,11 @@ defmodule RumblWeb.RingLive.Components.MainContent do
                   type="button"
                   phx-click="open_video_modal_edit"
                   phx-value-video_slug={@selected_video.slug}
-                  class="rumbl-tab"
+                  class="rumbl-toolbar-icon-action"
+                  aria-label="Edit video"
+                  title="Edit video"
                 >
-                  Edit Video
+                  <.icon name="hero-pencil-square" class="size-5" />
                 </button>
                 <button
                   :if={
@@ -51,9 +55,34 @@ defmodule RumblWeb.RingLive.Components.MainContent do
                   phx-click="delete_workspace_video"
                   phx-value-video_slug={@selected_video.slug}
                   data-confirm="Delete this video?"
-                  class="rumbl-mini-action is-danger"
+                  class="rumbl-toolbar-icon-action is-danger"
+                  aria-label="Delete video"
+                  title="Delete video"
                 >
-                  Delete
+                  <.icon name="hero-trash" class="size-5" />
+                </button>
+                <button
+                  id="ring-workspace-toggle-active-now"
+                  type="button"
+                  phx-click="toggle_active_now_panel"
+                  class="rumbl-tab"
+                  aria-label={
+                    if(@active_now_collapsed,
+                      do: "Expand active panel",
+                      else: "Collapse active panel"
+                    )
+                  }
+                  title={if(@active_now_collapsed, do: "Show Active Now", else: "Hide Active Now")}
+                >
+                  <.icon
+                    name={
+                      if(@active_now_collapsed,
+                        do: "hero-chevron-double-left",
+                        else: "hero-chevron-double-right"
+                      )
+                    }
+                    class="size-4"
+                  />
                 </button>
               </div>
             </div>

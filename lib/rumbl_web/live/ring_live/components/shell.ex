@@ -45,47 +45,79 @@ defmodule RumblWeb.RingLive.Components.Shell do
     <aside class="rumbl-panel">
       <%= if @active_panel == :rings and @selected_ring do %>
         <div class="rumbl-panel-header">
-          <.link id="ring-workspace-back" navigate={~p"/rings"} class="rumbl-panel-back">
-            <.icon name="hero-arrow-left" class="size-4" /> Rings
-          </.link>
-          <h2 class="rumbl-panel-title">{@selected_ring.name}</h2>
-          <p class="rumbl-panel-subtitle">Video Catalog</p>
+          <details class="rumbl-panel-menu">
+            <summary id="ring-workspace-menu" class="rumbl-panel-menu-summary">
+              <h2 class="rumbl-panel-title">{@selected_ring.name}</h2>
+              <.icon name="hero-chevron-down" class="rumbl-dropdown-chevron size-4 text-[#a8b4d1]" />
+            </summary>
+            <div class="rumbl-panel-menu-items">
+              <button
+                id="ring-create-category-trigger"
+                type="button"
+                phx-click="open_create_category_modal"
+                class="rumbl-panel-menu-item"
+              >
+                <.icon name="hero-folder-plus" class="size-4" /> Create category
+              </button>
+              <button
+                id="ring-delete-category-trigger"
+                type="button"
+                phx-click="open_delete_category_modal"
+                class="rumbl-panel-menu-item"
+              >
+                <.icon name="hero-trash" class="size-4" /> Delete category
+              </button>
+            </div>
+          </details>
         </div>
 
         <.form
           for={@panel_search_form}
           id="panel-search-form"
           phx-change="search_panel_catalog"
-          class="mt-2"
+          class="rumbl-panel-catalog-search"
         >
           <.input field={@panel_search_form[:query]} type="text" placeholder="Search video title" />
         </.form>
 
         <div id="ring-video-catalog" class="rumbl-panel-video-list">
-          <%= for video <- H.filter_ring_videos(@ring_videos, @panel_search_query) do %>
-            <button
-              id={"catalog-video-#{video.slug}"}
-              type="button"
-              phx-click="open_video"
-              phx-value-video_slug={video.slug}
-              class={[
-                "rumbl-panel-video-item",
-                @selected_video && @selected_video.slug == video.slug && "is-active"
-              ]}
-            >
-              <div class="rumbl-panel-video-thumb">
-                <.icon name="hero-play-circle" class="size-5" />
+          <% grouped_videos =
+            H.grouped_ring_videos(@ring_videos, @all_categories, @panel_search_query) %>
+          <%= for group <- grouped_videos do %>
+            <details id={"catalog-category-cat-#{group.id}"} class="rumbl-panel-category-group" open>
+              <summary
+                id={"catalog-category-summary-cat-#{group.id}"}
+                class="rumbl-panel-category-summary"
+              >
+                <h3 class="rumbl-panel-category-title">{group.category}</h3>
+                <.icon
+                  name="hero-chevron-down"
+                  class="rumbl-dropdown-chevron size-4 text-[#8ea1cf]"
+                />
+              </summary>
+
+              <div class="rumbl-panel-category-videos">
+                <%= if group.videos == [] do %>
+                  <p class="rumbl-panel-category-empty">No videos in this category yet.</p>
+                <% else %>
+                  <%= for video <- group.videos do %>
+                    <button
+                      id={"catalog-video-#{video.slug}"}
+                      type="button"
+                      phx-click="open_video"
+                      phx-value-video_slug={video.slug}
+                      class={[
+                        "rumbl-panel-channel-item",
+                        @selected_video && @selected_video.slug == video.slug && "is-active"
+                      ]}
+                    >
+                      <.icon name="hero-hashtag" class="size-4 text-[#8ea1cf]" />
+                      <span class="truncate">{video.title}</span>
+                    </button>
+                  <% end %>
+                <% end %>
               </div>
-              <div class="min-w-0 text-left">
-                <p class="truncate text-sm font-semibold">{video.title}</p>
-                <p class="truncate text-xs text-base-content/60">
-                  {if(video.user, do: video.user.name, else: "Unknown")} • {Calendar.strftime(
-                    video.inserted_at,
-                    "%b %d, %Y"
-                  )}
-                </p>
-              </div>
-            </button>
+            </details>
           <% end %>
         </div>
       <% else %>
@@ -93,9 +125,9 @@ defmodule RumblWeb.RingLive.Components.Shell do
           id="panel-search-toggle"
           type="button"
           phx-click="open_panel_search_modal"
-          class="rumbl-panel-search w-full text-left"
+          class="rumbl-panel-search flex w-full items-center gap-2 text-left"
         >
-          Find a ring
+          <.icon name="hero-magnifying-glass" class="size-4" /> Find a ring or video
         </button>
 
         <div class="rumbl-panel-nav">

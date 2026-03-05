@@ -150,12 +150,24 @@ defmodule Rumbl.Multimedia do
   end
 
   @doc """
+  Gets a category by id.
+  """
+  def get_category!(id), do: Repo.get!(Category, id)
+
+  @doc """
   Creates a category.
   """
   def create_category(attrs \\ %{}) do
     %Category{}
     |> Category.changeset(attrs)
     |> Repo.insert()
+  end
+
+  @doc """
+  Deletes a category.
+  """
+  def delete_category(%Category{} = category) do
+    Repo.delete(category)
   end
 
   # ============================================================================

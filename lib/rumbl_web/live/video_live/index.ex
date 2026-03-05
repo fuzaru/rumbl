@@ -3,6 +3,7 @@ defmodule RumblWeb.VideoLive.Index do
 
   alias Rumbl.Multimedia
   alias Rumbl.Rings
+  alias RumblWeb.RingLive.Index.RingPresence
   alias RumblWeb.VideoLive.{Modal, Show, Watch}
 
   @impl true
@@ -10,14 +11,39 @@ defmodule RumblWeb.VideoLive.Index do
     videos = Multimedia.list_user_videos(socket.assigns.current_user)
     rings = Rings.list_user_rings(socket.assigns.current_user)
     ring_options = Rings.ring_options(rings)
+    presence_subscriptions = RingPresence.topics_for_rings(rings)
 
-    {:ok,
-     socket
-     |> assign(:page_title, "My Videos")
-     |> assign(:rings, rings)
-     |> assign(:videos_empty?, videos == [])
-     |> stream(:videos, videos)
-     |> init(ring_options)}
+    socket =
+      socket
+      |> assign(:page_title, "My Videos")
+      |> assign(:rings, rings)
+      |> assign(:videos_empty?, videos == [])
+      |> assign(:presence_subscriptions, presence_subscriptions)
+      |> assign(:active_ring_users, RingPresence.active_users_for_rings(rings))
+      |> stream(:videos, videos)
+      |> init(ring_options)
+
+    if connected?(socket) do
+      Enum.each(presence_subscriptions, fn topic ->
+        Phoenix.PubSub.subscribe(Rumbl.PubSub, topic)
+      end)
+    end
+
+    {:ok, socket}
+  end
+
+  @impl true
+  def handle_info(%Phoenix.Socket.Broadcast{event: "presence_diff", topic: topic}, socket) do
+    if MapSet.member?(socket.assigns.presence_subscriptions, topic) do
+      {:noreply,
+       assign(
+         socket,
+         :active_ring_users,
+         RingPresence.active_users_for_rings(socket.assigns.rings)
+       )}
+    else
+      {:noreply, socket}
+    end
   end
 
   @impl true
@@ -153,7 +179,10 @@ defmodule RumblWeb.VideoLive.Index do
   end
 
   def dispatch_event("close_video_modal", _params, socket, _rings) do
-    {:noreply, socket |> Modal.close_modal() |> Phoenix.LiveView.push_patch(to: ~p"/videos")}
+    {:noreply,
+     socket
+     |> Modal.close_modal()
+     |> Phoenix.LiveView.push_patch(to: modal_return_path(socket))}
   end
 
   def dispatch_event("validate_video_modal", %{"video" => video_params}, socket, _rings) do
@@ -170,7 +199,7 @@ defmodule RumblWeb.VideoLive.Index do
          |> assign(:videos_empty?, videos == [])
          |> stream(:videos, videos, reset: true)
          |> Modal.close_modal()
-         |> Phoenix.LiveView.push_patch(to: ~p"/videos")
+         |> Phoenix.LiveView.push_patch(to: modal_return_path(socket))
          |> Phoenix.LiveView.put_flash(:info, "Video saved successfully")}
 
       {:error, socket} ->
@@ -202,5 +231,24 @@ defmodule RumblWeb.VideoLive.Index do
       :annotations,
       Watch.annotations_for_video(socket.assigns.selected_video)
     )
+  end
+
+  defp modal_return_path(socket) do
+    case socket.assigns.live_action do
+      :ring ->
+        case socket.assigns[:selected_ring] do
+          %{id: ring_id} when is_binary(ring_id) -> ~p"/rings/#{ring_id}"
+          _ -> ~p"/rings"
+        end
+
+      :rings ->
+        ~p"/rings"
+
+      :requests ->
+        ~p"/invitations"
+
+      _ ->
+        ~p"/videos"
+    end
   end
 end

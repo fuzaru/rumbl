@@ -59,7 +59,7 @@ defmodule RumblWeb.RingLive.Components.Modals do
         </button>
         <section id="panel-search-modal" class="rumbl-video-modal">
           <div class="rumbl-video-modal-header">
-            <h2 class="rumbl-video-modal-title">Find a ring</h2>
+            <h2 class="rumbl-video-modal-title">Find a ring or video</h2>
             <button
               id="panel-search-modal-close"
               type="button"
@@ -190,6 +190,105 @@ defmodule RumblWeb.RingLive.Components.Modals do
             <div class="rumbl-video-modal-actions">
               <button type="button" phx-click="close_new_ring_modal" class="rumbl-tab">Cancel</button>
               <button type="submit" class="rumbl-tab is-cta">Create Ring</button>
+            </div>
+          </.form>
+        </section>
+      </div>
+    <% end %>
+
+    <%= if @create_category_modal_open do %>
+      <div class="rumbl-modal-layer">
+        <button
+          type="button"
+          class="rumbl-modal-backdrop"
+          phx-click="close_create_category_modal"
+          aria-label="Close create category modal"
+        >
+        </button>
+        <section id="create-category-modal" class="rumbl-video-modal">
+          <div class="rumbl-video-modal-header">
+            <h2 class="rumbl-video-modal-title">Create Category</h2>
+            <button
+              id="create-category-modal-close"
+              type="button"
+              phx-click="close_create_category_modal"
+              class="rumbl-video-modal-close"
+              aria-label="Close"
+            >
+              <.icon name="hero-x-mark" class="size-5" />
+            </button>
+          </div>
+
+          <.form
+            for={@create_category_form}
+            id="create-category-form"
+            phx-change="validate_create_category"
+            phx-submit="save_create_category"
+            class="rumbl-form-stack"
+          >
+            <.input
+              field={@create_category_form[:name]}
+              type="text"
+              label="Category Name"
+              placeholder="e.g. Highlights"
+              required
+            />
+
+            <div class="rumbl-video-modal-actions">
+              <button type="button" phx-click="close_create_category_modal" class="rumbl-tab">
+                Cancel
+              </button>
+              <button type="submit" class="rumbl-tab is-cta">Create Category</button>
+            </div>
+          </.form>
+        </section>
+      </div>
+    <% end %>
+
+    <%= if @delete_category_modal_open do %>
+      <div class="rumbl-modal-layer">
+        <button
+          type="button"
+          class="rumbl-modal-backdrop"
+          phx-click="close_delete_category_modal"
+          aria-label="Close delete category modal"
+        >
+        </button>
+        <section id="delete-category-modal" class="rumbl-video-modal">
+          <div class="rumbl-video-modal-header">
+            <h2 class="rumbl-video-modal-title">Delete Category</h2>
+            <button
+              id="delete-category-modal-close"
+              type="button"
+              phx-click="close_delete_category_modal"
+              class="rumbl-video-modal-close"
+              aria-label="Close"
+            >
+              <.icon name="hero-x-mark" class="size-5" />
+            </button>
+          </div>
+
+          <.form
+            for={@delete_category_form}
+            id="delete-category-form"
+            phx-change="validate_delete_category"
+            phx-submit="save_delete_category"
+            class="rumbl-form-stack"
+          >
+            <.input
+              field={@delete_category_form[:category_id]}
+              type="select"
+              label="Category"
+              options={@categories}
+              prompt="Choose a category"
+              required
+            />
+
+            <div class="rumbl-video-modal-actions">
+              <button type="button" phx-click="close_delete_category_modal" class="rumbl-tab">
+                Cancel
+              </button>
+              <button type="submit" class="rumbl-tab is-cta">Delete Category</button>
             </div>
           </.form>
         </section>

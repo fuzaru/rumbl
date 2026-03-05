@@ -74,7 +74,7 @@ defmodule RumblWeb.RingLive.Index.RingPresence do
       if ring do
         []
       else
-        build_active_ring_users(socket)
+        active_users_for_rings(socket.assigns.rings)
       end
 
     socket
@@ -94,33 +94,23 @@ defmodule RumblWeb.RingLive.Index.RingPresence do
 
     if is_nil(socket.assigns.selected_ring) &&
          MapSet.member?(socket.assigns.presence_subscriptions, topic) do
-      assign(socket, :active_ring_users, build_active_ring_users(socket))
+      assign(socket, :active_ring_users, active_users_for_rings(socket.assigns.rings))
     else
       socket
     end
   end
 
-  defp online_member_ids(topic) do
-    Presence.list(topic)
-    |> Enum.reduce(MapSet.new(), fn {key, _details}, acc ->
-      case key do
-        "user:" <> id ->
-          case Integer.parse(id) do
-            {user_id, ""} -> MapSet.put(acc, user_id)
-            _ -> acc
-          end
-
-        _ ->
-          acc
-      end
-    end)
+  def topics_for_rings(rings) when is_list(rings) do
+    rings
+    |> Enum.map(&ring_presence_topic(&1.id))
+    |> MapSet.new()
   end
 
-  defp build_active_ring_users(socket) do
-    ring_names_by_id = Map.new(socket.assigns.rings, fn ring -> {ring.id, ring.name} end)
+  def active_users_for_rings(rings) when is_list(rings) do
+    ring_names_by_id = Map.new(rings, fn ring -> {ring.id, ring.name} end)
 
     ring_membership_by_user_id =
-      Enum.reduce(socket.assigns.rings, %{}, fn ring, acc ->
+      Enum.reduce(rings, %{}, fn ring, acc ->
         topic = ring_presence_topic(ring.id)
         ring_name = Map.fetch!(ring_names_by_id, ring.id)
 
@@ -143,7 +133,7 @@ defmodule RumblWeb.RingLive.Index.RingPresence do
       |> Map.new(fn user -> {user.id, user} end)
 
     ring_membership_by_user_id
-    |> Enum.flat_map(fn {user_id, rings} ->
+    |> Enum.flat_map(fn {user_id, user_rings} ->
       case Map.get(users_by_id, user_id) do
         nil ->
           []
@@ -154,12 +144,28 @@ defmodule RumblWeb.RingLive.Index.RingPresence do
               id: user.id,
               name: user.name,
               username: user.username,
-              rings: rings |> MapSet.to_list() |> Enum.sort()
+              rings: user_rings |> MapSet.to_list() |> Enum.sort()
             }
           ]
       end
     end)
     |> Enum.sort_by(& &1.username)
+  end
+
+  defp online_member_ids(topic) do
+    Presence.list(topic)
+    |> Enum.reduce(MapSet.new(), fn {key, _details}, acc ->
+      case key do
+        "user:" <> id ->
+          case Integer.parse(id) do
+            {user_id, ""} -> MapSet.put(acc, user_id)
+            _ -> acc
+          end
+
+        _ ->
+          acc
+      end
+    end)
   end
 
   defp parse_presence_key("user:" <> id) do

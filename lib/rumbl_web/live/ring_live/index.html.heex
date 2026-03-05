@@ -9,7 +9,10 @@
   <section class="rumbl-shell">
     <.ring_side_rail {assigns} />
 
-    <div class="rumbl-main">
+    <div class={[
+      "rumbl-main",
+      @selected_ring && @active_now_collapsed && "is-active-now-collapsed"
+    ]}>
       <.ring_left_panel {assigns} />
       <.ring_main_content {assigns} />
       <.ring_active_now {assigns} />

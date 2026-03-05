@@ -2,7 +2,7 @@ defmodule RumblWeb.RingLive.Index do
   use RumblWeb, :live_view
 
   alias Rumbl.Multimedia
-  alias RumblWeb.RingLive.Index.{Invitations, RingManagement, RingPresence}
+  alias RumblWeb.RingLive.Index.{CategoryManagement, Invitations, RingManagement, RingPresence}
   alias RumblWeb.VideoLive.Index, as: VideoState
   import RumblWeb.RingLive.Components.MainContent
   import RumblWeb.RingLive.Components.Modals
@@ -37,6 +37,7 @@ defmodule RumblWeb.RingLive.Index do
       |> assign(:panel_search_modal_open, false)
       |> assign(:panel_search_query, "")
       |> assign(:panel_search_global_videos, [])
+      |> assign(:active_now_collapsed, false)
       |> assign(:invite_modal_open, false)
       |> assign(:invite_modal_code, nil)
       |> assign(:rings, [])
@@ -49,6 +50,7 @@ defmodule RumblWeb.RingLive.Index do
       |> assign(:ring_videos, [])
       |> assign(:selected_video, nil)
       |> assign(:panel_search_form, to_form(%{"query" => ""}, as: :panel_search))
+      |> CategoryManagement.init_assigns()
       |> Invitations.init_assigns()
       |> RingManagement.init_assigns()
       |> RingManagement.refresh_user_rings_and_video_state()
@@ -66,6 +68,10 @@ defmodule RumblWeb.RingLive.Index do
       |> apply_home_live_action(socket.assigns.live_action, params)
       |> assign(:page_title, page_title_for(socket.assigns.live_action, socket))
       |> assign(:panel_search_modal_open, panel_search_modal_open)
+      |> assign(
+        :active_now_collapsed,
+        keep_active_now_collapsed?(socket.assigns.live_action, socket)
+      )
       |> Invitations.refresh_invitation_requests()
       |> sync_presence_state()
 
@@ -108,6 +114,46 @@ defmodule RumblWeb.RingLive.Index do
 
   def handle_event("close_panel_search_modal", _params, socket) do
     {:noreply, assign(socket, :panel_search_modal_open, false)}
+  end
+
+  def handle_event("open_create_category_modal", _params, socket) do
+    {:noreply, CategoryManagement.open_create_modal(socket)}
+  end
+
+  def handle_event("close_create_category_modal", _params, socket) do
+    {:noreply, CategoryManagement.close_create_modal(socket)}
+  end
+
+  def handle_event("validate_create_category", %{"category" => category_params}, socket) do
+    {:noreply, CategoryManagement.validate_create_modal(socket, category_params)}
+  end
+
+  def handle_event("save_create_category", %{"category" => category_params}, socket) do
+    CategoryManagement.save_category(socket, category_params)
+  end
+
+  def handle_event("open_delete_category_modal", _params, socket) do
+    {:noreply, CategoryManagement.open_delete_modal(socket)}
+  end
+
+  def handle_event("close_delete_category_modal", _params, socket) do
+    {:noreply, CategoryManagement.close_delete_modal(socket)}
+  end
+
+  def handle_event(
+        "validate_delete_category",
+        %{"delete_category" => %{"category_id" => category_id}},
+        socket
+      ) do
+    {:noreply, CategoryManagement.validate_delete_modal(socket, %{"category_id" => category_id})}
+  end
+
+  def handle_event("save_delete_category", %{"delete_category" => delete_params}, socket) do
+    CategoryManagement.delete_selected_category(socket, delete_params)
+  end
+
+  def handle_event("toggle_active_now_panel", _params, socket) do
+    {:noreply, assign(socket, :active_now_collapsed, !socket.assigns.active_now_collapsed)}
   end
 
   def handle_event("open_new_ring_modal", _params, socket) do
@@ -271,6 +317,9 @@ defmodule RumblWeb.RingLive.Index do
   end
 
   defp maybe_sync_presence(socket, _event), do: socket
+
+  defp keep_active_now_collapsed?(:ring, socket), do: socket.assigns.active_now_collapsed
+  defp keep_active_now_collapsed?(_live_action, _socket), do: false
 
   defp page_title_for(:rings, _socket), do: "My Rings"
   defp page_title_for(:requests, _socket), do: "Invitation Requests"

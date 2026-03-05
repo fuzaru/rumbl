@@ -30,9 +30,9 @@
         <.link
           id="videos-panel-search"
           navigate={~p"/rings?search=1"}
-          class="rumbl-panel-search block"
+          class="rumbl-panel-search flex items-center gap-2"
         >
-          Find a ring
+          <.icon name="hero-magnifying-glass" class="size-4" /> Find a ring or video
         </.link>
         <div class="rumbl-panel-nav">
           <.link id="videos-panel-my-rings" navigate={~p"/rings"} class="rumbl-panel-item">
@@ -64,9 +64,11 @@
             <.link
               id="videos-add-button"
               patch={~p"/videos?#{[modal: "new"]}"}
-              class="rumbl-tab is-cta"
+              class="rumbl-toolbar-icon-action"
+              aria-label="Add video"
+              title="Add video"
             >
-              Add Video
+              <.icon name="hero-plus" class="size-5" />
             </.link>
           </div>
 
@@ -81,7 +83,7 @@
               <div class="min-w-0">
                 <p class="truncate text-base font-semibold text-[#f4f7ff]">{video.title}</p>
                 <p class="truncate text-xs text-base-content/60">
-                  {if(video.category, do: video.category.name, else: "Uncategorized")} • {Calendar.strftime(
+                  {if(video.category, do: video.category.name, else: "No category")} • {Calendar.strftime(
                     video.inserted_at,
                     "%b %d, %Y"
                   )}
@@ -90,18 +92,22 @@
               <div class="rumbl-video-row-actions">
                 <.link
                   patch={~p"/videos?#{[modal: "edit", video: video.slug]}"}
-                  class="rumbl-mini-action"
+                  class="rumbl-toolbar-icon-action"
+                  aria-label="Edit video"
+                  title="Edit video"
                 >
-                  Edit
+                  <.icon name="hero-pencil-square" class="size-5" />
                 </.link>
                 <button
                   type="button"
                   phx-click="delete"
                   phx-value-id={video.slug}
                   data-confirm="Delete this video?"
-                  class="rumbl-mini-action is-danger"
+                  class="rumbl-toolbar-icon-action is-danger"
+                  aria-label="Delete video"
+                  title="Delete video"
                 >
-                  Delete
+                  <.icon name="hero-trash" class="size-5" />
                 </button>
               </div>
             </article>
@@ -118,11 +124,42 @@
 
       <aside class="rumbl-active-now">
         <h2 class="rumbl-active-now-title">Active Now</h2>
-        <div class="rumbl-active-now-card">
-          <p class="rumbl-active-now-headline">It's quiet for now...</p>
-          <p class="rumbl-active-now-copy">
-            When a ring member starts an activity, you'll see it here.
+        <div class="rumbl-active-now-meta">
+          <p class="text-xs font-medium uppercase tracking-wide text-[#8e9ab7]">
+            Workspace Activity
           </p>
+          <span class="rumbl-active-now-count">{length(@active_ring_users)}</span>
+        </div>
+
+        <div class="rumbl-active-feed">
+          <%= if @active_ring_users == [] do %>
+            <div class="rumbl-active-now-card">
+              <p class="rumbl-active-now-headline">It's quiet for now...</p>
+              <p class="rumbl-active-now-copy">
+                When a ring member starts an activity, you'll see it here.
+              </p>
+            </div>
+          <% else %>
+            <%= for user <- @active_ring_users do %>
+              <.link
+                id={"videos-active-now-user-#{user.id}"}
+                navigate={~p"/users/#{user.id}"}
+                class={["rumbl-presence-row", "rumbl-active-feed-row"]}
+              >
+                <div class="rumbl-presence-avatar-wrap">
+                  <div class="rumbl-presence-avatar">
+                    {String.first(user.name || user.username || "U")}
+                  </div>
+                  <span class="rumbl-presence-dot is-online"></span>
+                </div>
+                <div class="min-w-0">
+                  <p class="truncate text-sm font-semibold text-[#e8eeff]">{user.name}</p>
+                  <p class="truncate text-xs text-[#8e9ab7]">{Enum.join(user.rings, ", ")}</p>
+                </div>
+                <span class="rumbl-presence-badge">LIVE</span>
+              </.link>
+            <% end %>
+          <% end %>
         </div>
       </aside>
     </div>

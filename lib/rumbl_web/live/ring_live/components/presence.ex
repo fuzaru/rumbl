@@ -3,14 +3,18 @@ defmodule RumblWeb.RingLive.Components.Presence do
 
   def ring_active_now(assigns) do
     ~H"""
-    <aside class="rumbl-active-now">
+    <aside class={["rumbl-active-now", @selected_ring && @active_now_collapsed && "is-collapsed"]}>
       <h2 class="rumbl-active-now-title">Active Now</h2>
 
       <%= if @selected_ring do %>
         <% online_members =
-          Enum.filter(@ring_members, fn member -> MapSet.member?(@online_member_ids, member.id) end) %>
+          Enum.filter(@ring_members, fn member ->
+            MapSet.member?(@online_member_ids, member.id)
+          end) %>
         <% offline_members =
-          Enum.reject(@ring_members, fn member -> MapSet.member?(@online_member_ids, member.id) end) %>
+          Enum.reject(@ring_members, fn member ->
+            MapSet.member?(@online_member_ids, member.id)
+          end) %>
 
         <section id="presence-online-ring" class="rumbl-presence-section">
           <h3 class="rumbl-presence-heading">Online — {length(online_members)}</h3>
@@ -61,37 +65,53 @@ defmodule RumblWeb.RingLive.Components.Presence do
           </div>
         </section>
       <% else %>
-        <section id="presence-online-global" class="rumbl-presence-section">
-          <h3 class="rumbl-presence-heading">Online — {length(@active_ring_users)}</h3>
-          <div class="space-y-1">
-            <%= for user <- @active_ring_users do %>
+        <% active_entries =
+          @active_ring_users
+          |> Enum.map(fn user ->
+            %{
+              id: user.id,
+              name: user.name,
+              subtitle: Enum.join(user.rings, ", ")
+            }
+          end) %>
+
+        <div class="rumbl-active-now-meta">
+          <p class="text-xs font-medium uppercase tracking-wide text-[#8e9ab7]">
+            Workspace Activity
+          </p>
+          <span class="rumbl-active-now-count">{length(active_entries)}</span>
+        </div>
+
+        <div class="rumbl-active-feed">
+          <%= if active_entries == [] do %>
+            <div class="rumbl-active-now-card">
+              <p class="rumbl-active-now-headline">It's quiet for now...</p>
+              <p class="rumbl-active-now-copy">
+                When a ring member starts an activity, you'll see it here.
+              </p>
+            </div>
+          <% else %>
+            <%= for entry <- active_entries do %>
               <.link
-                id={"presence-online-#{user.id}"}
-                navigate={~p"/users/#{user.id}"}
-                class="rumbl-presence-row"
+                id={"active-now-user-#{entry.id}"}
+                navigate={~p"/users/#{entry.id}"}
+                class={["rumbl-presence-row", "rumbl-active-feed-row"]}
               >
                 <div class="rumbl-presence-avatar-wrap">
                   <div class="rumbl-presence-avatar">
-                    {String.first(user.name || user.username || "U")}
+                    {String.first(entry.name || "U")}
                   </div>
                   <span class="rumbl-presence-dot is-online"></span>
                 </div>
                 <div class="min-w-0">
-                  <p class="truncate text-sm font-semibold text-[#e8eeff]">{user.name}</p>
-                  <p class="truncate text-xs text-[#8e9ab7]">{Enum.join(user.rings, ", ")}</p>
+                  <p class="truncate text-sm font-semibold text-[#e8eeff]">{entry.name}</p>
+                  <p class="truncate text-xs text-[#8e9ab7]">{entry.subtitle}</p>
                 </div>
                 <span class="rumbl-presence-badge">APP</span>
               </.link>
             <% end %>
-          </div>
-        </section>
-
-        <section id="presence-offline-global" class="rumbl-presence-section">
-          <h3 class="rumbl-presence-heading">Offline — 0</h3>
-          <div class="rumbl-active-now-card">
-            <p class="text-xs text-[#7d879f]">Open a ring to view offline members.</p>
-          </div>
-        </section>
+          <% end %>
+        </div>
       <% end %>
     </aside>
     """

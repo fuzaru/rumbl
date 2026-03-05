@@ -33,12 +33,6 @@ defmodule Rumbl.Rings do
     Enum.map(rings, &{&1.name, &1.id})
   end
 
-  def ring_options_for_user(%User{} = user) do
-    user
-    |> list_user_rings()
-    |> ring_options()
-  end
-
   def create_ring(%User{} = owner, attrs) do
     invite_code = generate_invite_code()
 

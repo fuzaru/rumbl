@@ -3,8 +3,11 @@ defmodule RumblWeb.VideoLive.Modal do
   alias Rumbl.Multimedia.Video
 
   def init_assigns(socket, ring_options) do
+    categories = Multimedia.list_categories()
+
     socket
-    |> Phoenix.Component.assign(:categories, Multimedia.category_options())
+    |> Phoenix.Component.assign(:all_categories, categories)
+    |> Phoenix.Component.assign(:categories, Enum.map(categories, &{&1.name, &1.id}))
     |> Phoenix.Component.assign(:ring_options, ring_options)
     |> Phoenix.Component.assign(:video_modal_open, false)
     |> Phoenix.Component.assign(:video_modal_mode, :new)
