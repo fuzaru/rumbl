@@ -29,10 +29,14 @@ defmodule Rumbl.Rings do
     |> Repo.all()
   end
 
+  def ring_options(rings) when is_list(rings) do
+    Enum.map(rings, &{&1.name, &1.id})
+  end
+
   def ring_options_for_user(%User{} = user) do
     user
     |> list_user_rings()
-    |> Enum.map(&{&1.name, &1.id})
+    |> ring_options()
   end
 
   def create_ring(%User{} = owner, attrs) do
@@ -172,6 +176,34 @@ defmodule Rumbl.Rings do
       }
     )
     |> Repo.all()
+  end
+
+  def list_ring_peer_users(%User{id: user_id}) do
+    from(u in User,
+      join: current_membership in Membership,
+      on: current_membership.user_id == ^user_id,
+      join: peer_membership in Membership,
+      on:
+        peer_membership.ring_id == current_membership.ring_id and peer_membership.user_id == u.id,
+      where: u.id != ^user_id,
+      distinct: u.id,
+      order_by: [asc: u.username]
+    )
+    |> Repo.all()
+  end
+
+  def share_ring?(%User{id: left_user_id}, %User{id: right_user_id})
+      when left_user_id == right_user_id,
+      do: true
+
+  def share_ring?(%User{id: left_user_id}, %User{id: right_user_id}) do
+    from(left_membership in Membership,
+      join: right_membership in Membership,
+      on: right_membership.ring_id == left_membership.ring_id,
+      where:
+        left_membership.user_id == ^left_user_id and right_membership.user_id == ^right_user_id
+    )
+    |> Repo.exists?()
   end
 
   defp member?(ring_id, user_id) do

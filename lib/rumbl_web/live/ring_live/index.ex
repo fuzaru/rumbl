@@ -1,24 +1,34 @@
-defmodule RumblWeb.PageLive.Home do
+defmodule RumblWeb.RingLive.Index do
   use RumblWeb, :live_view
 
   alias Rumbl.Multimedia
-  alias Rumbl.Rings
-  alias RumblWeb.PageLive.Home.{Invitations, RingPresence}
+  alias RumblWeb.RingLive.Index.{Invitations, RingManagement, RingPresence}
   alias RumblWeb.VideoLive.Index, as: VideoState
+  import RumblWeb.RingLive.Components.MainContent
+  import RumblWeb.RingLive.Components.Modals
+  import RumblWeb.RingLive.Components.Presence
+  import RumblWeb.RingLive.Components.Shell
 
   @video_events [
     "select_ring",
     "open_video",
     "back_to_rings",
     "add_annotation",
-    "delete_workspace_video"
+    "delete_workspace_video",
+    "save_video_modal"
   ]
+
+  @video_passthrough_events [
+    "open_video_modal_new",
+    "open_video_modal_edit",
+    "close_video_modal",
+    "validate_video_modal"
+  ]
+
+  @presence_synced_events ["save_video_modal", "respond_invitation"]
 
   @impl true
   def mount(_params, _session, socket) do
-    rings = Rings.list_user_rings(socket.assigns.current_user)
-    ring_options = Enum.map(rings, fn ring -> {ring.name, ring.id} end)
-
     socket =
       socket
       |> assign(:page_title, "Home")
@@ -29,7 +39,7 @@ defmodule RumblWeb.PageLive.Home do
       |> assign(:panel_search_global_videos, [])
       |> assign(:invite_modal_open, false)
       |> assign(:invite_modal_code, nil)
-      |> assign(:rings, rings)
+      |> assign(:rings, [])
       |> assign(:ring_members, [])
       |> assign(:active_ring_users, [])
       |> assign(:online_member_ids, MapSet.new())
@@ -40,9 +50,9 @@ defmodule RumblWeb.PageLive.Home do
       |> assign(:selected_video, nil)
       |> assign(:panel_search_form, to_form(%{"query" => ""}, as: :panel_search))
       |> Invitations.init_assigns()
-      |> VideoState.init(ring_options)
-      |> RingPresence.refresh_ring_members()
-      |> RingPresence.sync_presence_topic()
+      |> RingManagement.init_assigns()
+      |> RingManagement.refresh_user_rings_and_video_state()
+      |> sync_presence_state()
 
     {:ok, socket}
   end
@@ -54,10 +64,10 @@ defmodule RumblWeb.PageLive.Home do
     socket =
       socket
       |> apply_home_live_action(socket.assigns.live_action, params)
+      |> assign(:page_title, page_title_for(socket.assigns.live_action, socket))
       |> assign(:panel_search_modal_open, panel_search_modal_open)
       |> Invitations.refresh_invitation_requests()
-      |> RingPresence.refresh_ring_members()
-      |> RingPresence.sync_presence_topic()
+      |> sync_presence_state()
 
     {:noreply, socket}
   end
@@ -71,20 +81,20 @@ defmodule RumblWeb.PageLive.Home do
   def handle_event("select_panel", %{"panel" => "rings"}, socket) do
     {:noreply,
      socket
+     |> assign(:page_title, "My Rings")
      |> assign(:active_panel, :rings)
      |> VideoState.clear_ring_workspace()
-     |> RingPresence.refresh_ring_members()
-     |> RingPresence.sync_presence_topic()}
+     |> sync_presence_state()}
   end
 
   def handle_event("select_panel", %{"panel" => "requests"}, socket) do
     {:noreply,
      socket
+     |> assign(:page_title, "Invitation Requests")
      |> assign(:active_panel, :requests)
      |> VideoState.clear_ring_workspace()
      |> Invitations.refresh_invitation_requests()
-     |> RingPresence.refresh_ring_members()
-     |> RingPresence.sync_presence_topic()}
+     |> sync_presence_state()}
   end
 
   @impl true
@@ -100,8 +110,44 @@ defmodule RumblWeb.PageLive.Home do
     {:noreply, assign(socket, :panel_search_modal_open, false)}
   end
 
+  def handle_event("open_new_ring_modal", _params, socket) do
+    {:noreply, RingManagement.open_new_modal(socket)}
+  end
+
+  def handle_event("close_new_ring_modal", _params, socket) do
+    {:noreply, RingManagement.close_new_modal(socket)}
+  end
+
+  def handle_event("validate_new_ring", %{"ring" => ring_params}, socket) do
+    {:noreply, RingManagement.validate_new_modal(socket, ring_params)}
+  end
+
+  def handle_event("save_new_ring", %{"ring" => ring_params}, socket) do
+    RingManagement.save_new_ring(socket, ring_params)
+  end
+
+  def handle_event("open_join_ring_modal", _params, socket) do
+    {:noreply, RingManagement.open_join_modal(socket)}
+  end
+
+  def handle_event("close_join_ring_modal", _params, socket) do
+    {:noreply, RingManagement.close_join_modal(socket)}
+  end
+
+  def handle_event("validate_join_ring", %{"join_ring" => params}, socket) do
+    {:noreply, RingManagement.validate_join_modal(socket, params)}
+  end
+
+  def handle_event("save_join_ring", %{"join_ring" => params}, socket) do
+    RingManagement.save_join_ring(socket, params)
+  end
+
+  def handle_event(event, params, socket) when event in @video_passthrough_events do
+    VideoState.dispatch_event(event, params, socket, socket.assigns.rings)
+  end
+
   def handle_event("open_video_from_search", %{"video_slug" => video_slug}, socket) do
-    case VideoState.handle_event(
+    case VideoState.dispatch_event(
            "open_video",
            %{"video_slug" => video_slug},
            socket,
@@ -169,10 +215,7 @@ defmodule RumblWeb.PageLive.Home do
     case Invitations.respond_invitation(socket, invitation_id, action) do
       {:ok, updated_socket, message} ->
         {:noreply,
-         updated_socket
-         |> RingPresence.refresh_ring_members()
-         |> RingPresence.sync_presence_topic()
-         |> put_flash(:info, message)}
+         updated_socket |> maybe_sync_presence("respond_invitation") |> put_flash(:info, message)}
 
       {:error, updated_socket, message} ->
         {:noreply, put_flash(updated_socket, :error, message)}
@@ -180,12 +223,9 @@ defmodule RumblWeb.PageLive.Home do
   end
 
   def handle_event(event, params, socket) when event in @video_events do
-    case VideoState.handle_event(event, params, socket, socket.assigns.rings) do
+    case VideoState.dispatch_event(event, params, socket, socket.assigns.rings) do
       {:noreply, updated_socket} ->
-        {:noreply,
-         updated_socket
-         |> RingPresence.refresh_ring_members()
-         |> RingPresence.sync_presence_topic()}
+        {:noreply, maybe_sync_presence(updated_socket, event)}
 
       other ->
         other
@@ -211,26 +251,6 @@ defmodule RumblWeb.PageLive.Home do
 
   defp apply_home_live_action(socket, _live_action, _params), do: socket
 
-  defp filter_rings(rings, ""), do: rings
-
-  defp filter_rings(rings, query) do
-    normalized_query = String.downcase(query)
-
-    Enum.filter(rings, fn ring ->
-      String.contains?(String.downcase(ring.name), normalized_query)
-    end)
-  end
-
-  defp filter_ring_videos(videos, ""), do: videos
-
-  defp filter_ring_videos(videos, query) do
-    normalized_query = String.downcase(query)
-
-    Enum.filter(videos, fn video ->
-      String.contains?(String.downcase(video.title), normalized_query)
-    end)
-  end
-
   defp search_global_catalog_videos(socket, query) do
     if socket.assigns.selected_ring do
       []
@@ -240,10 +260,27 @@ defmodule RumblWeb.PageLive.Home do
     end
   end
 
-  defp ring_name_by_id(rings, ring_id) do
-    case Enum.find(rings, &(&1.id == ring_id)) do
-      nil -> "Unknown Ring"
-      ring -> ring.name
+  defp sync_presence_state(socket) do
+    socket
+    |> RingPresence.refresh_ring_members()
+    |> RingPresence.sync_presence_topic()
+  end
+
+  defp maybe_sync_presence(socket, event) when event in @presence_synced_events do
+    sync_presence_state(socket)
+  end
+
+  defp maybe_sync_presence(socket, _event), do: socket
+
+  defp page_title_for(:rings, _socket), do: "My Rings"
+  defp page_title_for(:requests, _socket), do: "Invitation Requests"
+
+  defp page_title_for(:ring, socket) do
+    case socket.assigns.selected_ring do
+      %{name: name} when is_binary(name) and name != "" -> name
+      _ -> "Ring"
     end
   end
+
+  defp page_title_for(_live_action, socket), do: socket.assigns.page_title || "Rumbl"
 end

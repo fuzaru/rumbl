@@ -875,24 +875,25 @@ html.auth-switching .auth-card {
 
 .rumbl-active-now {
   border-left: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 1.2rem 0.9rem;
-  background: rgba(11, 14, 22, 0.9);
+  padding: 1rem 0.7rem;
+  background: linear-gradient(180deg, rgba(11, 14, 22, 0.96), rgba(13, 17, 27, 0.98));
   color: #f4f7ff;
+  overflow-y: auto;
 }
 
 .rumbl-active-now-title {
-  font-size: 1.5rem;
-  line-height: 1.1;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-size: 1rem;
+  line-height: 1.2;
+  font-weight: 600;
+  color: #9eabd2;
 }
 
 .rumbl-active-now-card {
-  margin-top: 0.9rem;
+  margin-top: 0.45rem;
   border-radius: 0.8rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.03);
-  padding: 1rem 0.9rem;
+  padding: 0.55rem 0.6rem;
 }
 
 .rumbl-active-now-headline {
@@ -908,28 +909,81 @@ html.auth-switching .auth-card {
   line-height: 1.35;
 }
 
-.rumbl-member-row {
+.rumbl-presence-section {
+  margin-top: 0.7rem;
+}
+
+.rumbl-presence-heading {
+  font-size: 0.86rem;
+  color: #8d98b6;
+  margin-bottom: 0.35rem;
+}
+
+.rumbl-presence-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 0.6rem;
-  border-radius: 0.65rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
-  padding: 0.45rem 0.55rem;
+  border-radius: 0.55rem;
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 0.3rem 0.35rem;
+  transition: background-color 150ms ease, border-color 150ms ease;
 }
 
-.rumbl-member-dot {
-  width: 0.6rem;
-  height: 0.6rem;
+.rumbl-presence-row:hover {
+  background: rgba(95, 124, 206, 0.2);
+  border-color: rgba(95, 124, 206, 0.35);
+}
+
+.rumbl-presence-row.is-offline {
+  opacity: 0.62;
+}
+
+.rumbl-presence-avatar-wrap {
+  position: relative;
+  width: 2rem;
+  height: 2rem;
+  min-width: 2rem;
+}
+
+.rumbl-presence-avatar {
+  width: 2rem;
+  height: 2rem;
   border-radius: 9999px;
-  background: #a6b0ca;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #4f6ed4, #2a3350);
+  color: #f0f5ff;
+  font-weight: 700;
+  font-size: 0.74rem;
 }
 
-.rumbl-member-dot.is-online {
+.rumbl-presence-dot {
+  position: absolute;
+  right: -0.05rem;
+  bottom: -0.05rem;
+  width: 0.68rem;
+  height: 0.68rem;
+  border-radius: 9999px;
+  background: #70778b;
+  border: 2px solid #141925;
+}
+
+.rumbl-presence-dot.is-online {
   background: #3ee37d;
-  box-shadow: 0 0 0 1px rgba(20, 96, 45, 0.75);
+}
+
+.rumbl-presence-badge {
+  margin-left: auto;
+  border-radius: 0.4rem;
+  background: #5b67d8;
+  color: #eef2ff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 0.11rem 0.35rem;
 }
 
 .rumbl-avatar {

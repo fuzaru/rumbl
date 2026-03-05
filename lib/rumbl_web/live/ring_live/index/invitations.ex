@@ -1,9 +1,9 @@
-defmodule RumblWeb.PageLive.Home.Invitations do
+defmodule RumblWeb.RingLive.Index.Invitations do
   import Phoenix.Component, only: [assign: 3, to_form: 2]
 
   alias Rumbl.Accounts
   alias Rumbl.Rings
-  alias RumblWeb.VideoLive.Index, as: VideoState
+  alias RumblWeb.RingLive.Index.RingManagement
 
   def init_assigns(socket) do
     owned_rings = Rings.list_owned_rings(socket.assigns.current_user)
@@ -30,22 +30,19 @@ defmodule RumblWeb.PageLive.Home.Invitations do
   end
 
   def refresh_user_ring_data(socket) do
-    rings = Rings.list_user_rings(socket.assigns.current_user)
-    ring_options = Enum.map(rings, fn ring -> {ring.name, ring.id} end)
     owned_rings = Rings.list_owned_rings(socket.assigns.current_user)
 
     selected_invite_ring_id =
       ensure_selected_invite_ring_id(socket.assigns.selected_invite_ring_id, owned_rings)
 
     socket
-    |> assign(:rings, rings)
+    |> RingManagement.refresh_user_rings_and_video_state()
     |> assign(:owned_rings, owned_rings)
     |> assign(:selected_invite_ring_id, selected_invite_ring_id)
     |> assign(
       :invite_ring_form,
       to_form(%{"ring_id" => selected_invite_ring_id || ""}, as: :invite_ring)
     )
-    |> VideoState.init(ring_options)
     |> rerun_user_search()
   end
 

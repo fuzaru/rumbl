@@ -23,10 +23,7 @@
 
   <div class="mt-8 flex gap-4">
     <.back navigate={~p"/videos"}>Back to videos</.back>
-    <.link
-      :if={@current_user && @current_user.id == @video.user_id}
-      navigate={~p"/videos/#{@video}/edit"}
-    >
+    <.link :if={@current_user && @current_user.id == @video.user_id} navigate={~p"/videos"}>
       <.button>Edit Video</.button>
     </.link>
   </div>

@@ -20,7 +20,7 @@
       >
         {String.first(ring.name)}
       </.link>
-      <.link id="videos-rail-add" navigate={~p"/rings/new"} class="rumbl-rail-node is-add">
+      <.link id="videos-rail-add" navigate={~p"/rings"} class="rumbl-rail-node is-add">
         <.icon name="hero-plus" class="size-6" />
       </.link>
     </aside>
@@ -61,7 +61,11 @@
         <section id="my-videos-section" class="space-y-5">
           <div class="rumbl-content-header">
             <h1 class="text-xl font-bold tracking-tight">My Videos</h1>
-            <.link id="videos-add-button" navigate={~p"/videos/new"} class="rumbl-tab is-cta">
+            <.link
+              id="videos-add-button"
+              patch={~p"/videos?#{[modal: "new"]}"}
+              class="rumbl-tab is-cta"
+            >
               Add Video
             </.link>
           </div>
@@ -84,7 +88,12 @@
                 </p>
               </div>
               <div class="rumbl-video-row-actions">
-                <.link navigate={~p"/videos/#{video}/edit"} class="rumbl-mini-action">Edit</.link>
+                <.link
+                  patch={~p"/videos?#{[modal: "edit", video: video.slug]}"}
+                  class="rumbl-mini-action"
+                >
+                  Edit
+                </.link>
                 <button
                   type="button"
                   phx-click="delete"
@@ -100,7 +109,7 @@
 
           <p :if={@videos_empty?} class="text-sm text-base-content/70">
             You haven't added any videos yet.
-            <.link navigate={~p"/videos/new"} class="rumbl-inline-link">
+            <.link patch={~p"/videos?#{[modal: "new"]}"} class="rumbl-inline-link">
               Add your first video
             </.link>
           </p>
@@ -143,6 +152,74 @@
             <.icon name="hero-arrow-left-on-rectangle" class="size-4" />
           </.link>
         </div>
+      </div>
+    <% end %>
+
+    <%= if @video_modal_open do %>
+      <div class="rumbl-modal-layer">
+        <button
+          type="button"
+          class="rumbl-modal-backdrop"
+          phx-click="close_video_modal"
+          aria-label="Close video modal"
+        >
+        </button>
+        <section id="video-modal" class="rumbl-video-modal">
+          <div class="rumbl-video-modal-header">
+            <h2 class="rumbl-video-modal-title">{@video_modal_title}</h2>
+            <button
+              id="video-modal-close"
+              type="button"
+              phx-click="close_video_modal"
+              class="rumbl-video-modal-close"
+              aria-label="Close"
+            >
+              <.icon name="hero-x-mark" class="size-5" />
+            </button>
+          </div>
+
+          <.form
+            for={@video_modal_form}
+            id="video-modal-form"
+            phx-change="validate_video_modal"
+            phx-submit="save_video_modal"
+            class="rumbl-form-stack"
+          >
+            <.input field={@video_modal_form[:title]} type="text" label="Title" required />
+            <.input
+              field={@video_modal_form[:url]}
+              type="text"
+              label="YouTube URL"
+              placeholder="https://www.youtube.com/watch?v=..."
+              required
+            />
+            <.input
+              field={@video_modal_form[:ring_id]}
+              type="select"
+              label="Workspace Ring"
+              options={@ring_options}
+              prompt="Choose a workspace"
+              required
+            />
+            <.input field={@video_modal_form[:description]} type="textarea" label="Description" />
+            <.input
+              field={@video_modal_form[:category_id]}
+              type="select"
+              label="Category"
+              options={@categories}
+              prompt="Choose a category"
+            />
+
+            <div class="rumbl-video-modal-actions">
+              <button type="button" phx-click="close_video_modal" class="rumbl-tab">
+                Cancel
+              </button>
+              <button type="submit" class="rumbl-tab is-cta">
+                {if(@video_modal_mode == :new, do: "Create Video", else: "Save Changes")}
+              </button>
+            </div>
+          </.form>
+        </section>
       </div>
     <% end %>
   </section>

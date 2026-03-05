@@ -1,4 +1,4 @@
-defmodule RumblWeb.PageLive.Home.RingPresence do
+defmodule RumblWeb.RingLive.Index.RingPresence do
   import Phoenix.Component, only: [assign: 3]
 
   alias Rumbl.Accounts

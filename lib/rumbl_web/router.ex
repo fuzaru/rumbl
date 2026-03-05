@@ -28,18 +28,18 @@ defmodule RumblWeb.Router do
     ## Live Routes (auth)
     live_session :authenticated_user,
       on_mount: [{RumblWeb.UserLiveAuth, :ensure_authenticated}] do
-      live "/rings", PageLive.Home, :rings
-      live "/rings/new", RingLive.NewRing, :new
-      live "/rings/join", RingLive.JoinRing, :join
-      live "/rings/:ring_id", PageLive.Home, :ring
+      live "/rings", RingLive.Index, :rings
+      live "/rings/:ring_id", RingLive.Index, :ring
 
-      live "/invitations", PageLive.Home, :requests
+      live "/invitations", RingLive.Index, :requests
 
       live "/videos", VideoLive.Index, :index
-      live "/videos/new", VideoLive.Form, :new
-      live "/videos/:id/edit", VideoLive.Form, :edit
       live "/videos/:id", VideoLive.Show, :show
       live "/watch/:id", VideoLive.Watch, :watch
+
+      # users
+      live "/users", UserLive.Index, :index
+      live "/users/:id", UserLive.Show, :show
     end
 
     ## Live Routes (current_user)
@@ -50,10 +50,7 @@ defmodule RumblWeb.Router do
       # sessions
       live "/sessions/new", SessionLive.New, :new
 
-      # users
-      live "/users", UserLive.Index, :index
       live "/users/new", UserLive.Register, :new
-      live "/users/:id", UserLive.Show, :show
     end
   end
 
