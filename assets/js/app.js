@@ -48,27 +48,51 @@ const VideoWatch = {
       this.onSubmit = (e) => {
         e.preventDefault()
         const bodyInput = document.getElementById("annotation-body")
-        const atInput = document.getElementById("annotation-at")
+        const timestampInput = document.getElementById("annotation-timestamp")
         const body = bodyInput?.value || ""
-        const at = parseInt(atInput?.value || "0", 10) || 0
+        const timestamp = timestampInput?.value?.trim() || ""
+        const at = this.parseTimestamp(timestamp)
 
-        if (body.trim() === "") return
+        if (body.trim() === "" || !timestampInput) return
+        if (at === null) {
+          timestampInput.setCustomValidity("Use m:ss or h:mm:ss")
+          timestampInput.reportValidity()
+          return
+        }
+
+        timestampInput.setCustomValidity("")
 
         this.channel.push("new_annotation", {body, at})
           .receive("ok", () => {
             bodyInput.value = ""
+            timestampInput.value = ""
           })
           .receive("error", (err) => console.error("Failed to post annotation", err))
       }
 
       form.addEventListener("submit", this.onSubmit)
     }
+
+    this.onTimestampClick = (e) => {
+      const target = e.target.closest(".annotation-timestamp")
+      if (!target) return
+
+      e.preventDefault()
+      const at = parseInt(target.dataset.at || "0", 10) || 0
+      this.seekTo(at)
+    }
+
+    this.el.addEventListener("click", this.onTimestampClick)
   },
 
   destroyed() {
     const form = document.getElementById("annotation-form")
     if (form && this.onSubmit) {
       form.removeEventListener("submit", this.onSubmit)
+    }
+
+    if (this.onTimestampClick) {
+      this.el.removeEventListener("click", this.onTimestampClick)
     }
 
     if (this.channel) this.channel.leave()
@@ -89,16 +113,22 @@ const VideoWatch = {
     div.className = "annotation p-3 bg-gray-50 rounded-lg"
     div.dataset.at = annotation.at
     div.innerHTML = `
-      <div class="flex items-center gap-2">
-        <span class="text-xs font-mono text-brand bg-brand/10 px-2 py-1 rounded">
-          ${this.formatTime(annotation.at)}
-        </span>
-        <span class="font-semibold text-gray-800">${annotation.user.username}</span>
-      </div>
+      <button type="button" class="annotation-timestamp text-xs font-mono text-brand hover:underline" data-at="${annotation.at}">
+        ${this.formatTime(annotation.at)}
+      </button>
       <p class="mt-1 text-gray-600">${annotation.body}</p>
     `
-    container.appendChild(div)
-    div.scrollIntoView({behavior: "smooth"})
+
+    const siblings = [...container.querySelectorAll(".annotation")]
+    const nextElement = siblings.find((item) => Number(item.dataset.at || "0") > annotation.at)
+
+    if (nextElement) {
+      container.insertBefore(div, nextElement)
+    } else {
+      container.appendChild(div)
+    }
+
+    div.scrollIntoView({behavior: "smooth", block: "nearest"})
   },
 
   formatTime(ms) {
@@ -106,6 +136,46 @@ const VideoWatch = {
     const minutes = Math.floor(totalSeconds / 60)
     const seconds = totalSeconds % 60
     return `${minutes}:${seconds.toString().padStart(2, "0")}`
+  },
+
+  parseTimestamp(timestamp) {
+    if (!timestamp) return null
+
+    const parts = timestamp.split(":")
+    const allNumeric = parts.every((part) => /^\d+$/.test(part))
+    if (!allNumeric) return null
+
+    if (parts.length === 2) {
+      const minutes = Number(parts[0])
+      const seconds = Number(parts[1])
+
+      if (seconds >= 60) return null
+
+      return (minutes * 60 + seconds) * 1000
+    }
+
+    if (parts.length === 3) {
+      const hours = Number(parts[0])
+      const minutes = Number(parts[1])
+      const seconds = Number(parts[2])
+
+      if (minutes >= 60 || seconds >= 60) return null
+
+      return (hours * 3600 + minutes * 60 + seconds) * 1000
+    }
+
+    return null
+  },
+
+  seekTo(milliseconds) {
+    const iframe = document.getElementById("video-player")
+    if (!iframe) return
+
+    const startSeconds = Math.floor(milliseconds / 1000)
+    const url = new URL(iframe.src, window.location.origin)
+    url.searchParams.set("start", startSeconds.toString())
+    url.searchParams.set("autoplay", "1")
+    iframe.src = url.toString()
   }
 }
 
@@ -134,6 +204,30 @@ const FocusHintDisplayName = {
   }
 }
 
+const AutoGrowTextarea = {
+  mounted() {
+    this.baseHeight = this.el.offsetHeight
+
+    this.resize = () => {
+      this.el.style.height = "auto"
+      this.el.style.height = `${Math.max(this.el.scrollHeight, this.baseHeight)}px`
+    }
+
+    this.el.addEventListener("input", this.resize)
+    this.resize()
+  },
+
+  updated() {
+    if (this.resize) this.resize()
+  },
+
+  destroyed() {
+    if (this.resize) {
+      this.el.removeEventListener("input", this.resize)
+    }
+  }
+}
+
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
@@ -142,6 +236,7 @@ const liveSocket = new LiveSocket("/live", Socket, {
     ...colocatedHooks,
     VideoWatch,
     FocusHintDisplayName,
+    AutoGrowTextarea,
   },
 })
 

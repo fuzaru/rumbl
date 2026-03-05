@@ -38,6 +38,7 @@ defmodule RumblWeb.Router do
       live "/watch/:id", VideoLive.Watch, :watch
 
       # users
+      live "/user", UserLive.Show, :self
       live "/users", UserLive.Index, :index
       live "/users/:id", UserLive.Show, :show
     end

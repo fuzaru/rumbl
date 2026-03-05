@@ -4,6 +4,17 @@ defmodule RumblWeb.RingLive.Components.Presence do
   def ring_active_now(assigns) do
     ~H"""
     <aside class={["rumbl-active-now", @selected_ring && @active_now_collapsed && "is-collapsed"]}>
+      <%= if @selected_ring do %>
+        <.form
+          for={@panel_search_form}
+          id="ring-active-now-search-form"
+          phx-change="search_panel_catalog"
+          class="rumbl-active-now-search-form"
+        >
+          <.input field={@panel_search_form[:query]} type="text" placeholder="Search videos" />
+        </.form>
+      <% end %>
+
       <h2 class="rumbl-active-now-title">Active Now</h2>
 
       <%= if @selected_ring do %>

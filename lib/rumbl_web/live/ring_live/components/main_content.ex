@@ -5,22 +5,19 @@ defmodule RumblWeb.RingLive.Components.MainContent do
 
   def ring_main_content(assigns) do
     ~H"""
-    <main class="rumbl-content">
+    <main class="rumbl-content rumbl-home-content">
       <%= if @active_panel == :rings do %>
         <%= if @selected_ring do %>
-          <section id="ring-workspace-section" class="space-y-4">
-            <div class="rumbl-content-header">
-              <h1 class="text-xl font-bold tracking-tight">{@selected_ring.name} Workspace</h1>
-              <div class="flex items-center gap-2">
-                <button
-                  :if={@current_user && @selected_ring.owner_id == @current_user.id}
-                  id="ring-workspace-invite"
-                  type="button"
-                  phx-click="show_invite_code"
-                  class="rumbl-tab"
-                >
-                  Invite
-                </button>
+          <section id="ring-workspace-section" class="rumbl-workspace">
+            <div class="rumbl-content-header rumbl-channel-header">
+              <div class="rumbl-channel-title-wrap">
+                <.icon name="hero-hashtag" class="size-5 text-[#8ea1cf]" />
+                <h1 class="rumbl-channel-title">
+                  {if(@selected_video, do: @selected_video.title, else: "Select a video")}
+                </h1>
+              </div>
+
+              <div class="rumbl-channel-actions">
                 <button
                   id="ring-workspace-add-video"
                   type="button"
@@ -88,65 +85,108 @@ defmodule RumblWeb.RingLive.Components.MainContent do
             </div>
 
             <%= if @selected_video do %>
-              <article id="ring-selected-video" class="rumbl-video-stage">
-                <div class="rumbl-video-stage-top">
-                  <h3 class="text-lg font-semibold">{@selected_video.title}</h3>
-                  <span class="text-xs text-base-content/60">
-                    by {if(@selected_video.user, do: @selected_video.user.name, else: "Unknown")} • {Calendar.strftime(
-                      @selected_video.inserted_at,
-                      "%b %d, %Y"
-                    )}
-                  </span>
-                </div>
-                <%= if Rumbl.Multimedia.Video.youtube_id(@selected_video) do %>
-                  <div class="rumbl-video-embed-wrap">
-                    <iframe
-                      id="ring-video-embed"
-                      class="rumbl-video-embed"
-                      src={"https://www.youtube.com/embed/#{Rumbl.Multimedia.Video.youtube_id(@selected_video)}"}
-                      title={@selected_video.title}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      referrerpolicy="strict-origin-when-cross-origin"
-                      allowfullscreen
-                    >
-                    </iframe>
+              <div class="rumbl-workspace-main grid items-start gap-4 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
+                <article id="ring-selected-video" class="rumbl-video-stage">
+                  <div class="rumbl-video-stage-top">
+                    <h3 class="text-lg font-semibold">{@selected_video.title}</h3>
+                    <span class="text-xs text-base-content/60">
+                      by {if(@selected_video.user, do: @selected_video.user.name, else: "Unknown")} • {Calendar.strftime(
+                        @selected_video.inserted_at,
+                        "%b %d, %Y"
+                      )}
+                    </span>
                   </div>
-                <% else %>
-                  <div class="rumbl-video-placeholder">
-                    <.icon name="hero-play-circle" class="size-10" />
-                    <p class="mt-2 text-sm text-base-content/70">
-                      Preview unavailable. This URL is not a supported YouTube link.
-                    </p>
-                  </div>
-                <% end %>
-              </article>
-
-              <section id="video-annotations" class="rumbl-annotations">
-                <h3 class="text-sm font-semibold uppercase tracking-wide text-base-content/70">
-                  Annotations
-                </h3>
-                <div class="space-y-2">
-                  <%= for annotation <- @annotations do %>
-                    <article id={"annotation-#{annotation.id}"} class="rumbl-annotation-row">
-                      <p class="text-sm font-semibold">{annotation.author}</p>
-                      <p class="text-sm text-base-content/75">{annotation.body}</p>
-                    </article>
+                  <%= if Rumbl.Multimedia.Video.youtube_id(@selected_video) do %>
+                    <div class="rumbl-video-embed-wrap">
+                      <iframe
+                        id="ring-video-embed"
+                        class="rumbl-video-embed"
+                        src={
+                          video_embed_src(
+                            @selected_video,
+                            if(is_integer(@selected_video_start_seconds),
+                              do: @selected_video_start_seconds,
+                              else: nil
+                            )
+                          )
+                        }
+                        title={@selected_video.title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allowfullscreen
+                      >
+                      </iframe>
+                    </div>
+                  <% else %>
+                    <div class="rumbl-video-placeholder">
+                      <.icon name="hero-play-circle" class="size-10" />
+                      <p class="mt-2 text-sm text-base-content/70">
+                        Preview unavailable. This URL is not a supported YouTube link.
+                      </p>
+                    </div>
                   <% end %>
-                </div>
+                </article>
 
+                <section id="video-annotations" class="rumbl-annotations">
+                  <h3 class="text-sm font-semibold uppercase tracking-wide text-base-content/70">
+                    Annotations
+                  </h3>
+                  <div class="mt-2 space-y-2 rumbl-annotation-list">
+                    <%= for annotation <- @annotations do %>
+                      <article id={"annotation-#{annotation.id}"} class="rumbl-annotation-row">
+                        <button
+                          type="button"
+                          phx-click="seek_annotation_timestamp"
+                          phx-value-at={annotation.at}
+                          class="text-xs font-mono text-[#94b7ff] transition hover:text-[#bdd2ff]"
+                        >
+                          {RumblWeb.VideoLive.Watch.format_time(annotation.at)}
+                        </button>
+                        <p class="mt-1 text-sm text-base-content/80">
+                          {annotation.body}
+                        </p>
+                      </article>
+                    <% end %>
+                  </div>
+                </section>
+              </div>
+
+              <section id="video-annotation-composer" class="rumbl-annotation-composer">
                 <.form
                   for={@annotation_form}
                   id="annotation-form"
                   phx-submit="add_annotation"
                   class="rumbl-annotation-form"
                 >
-                  <.input
-                    field={@annotation_form[:body]}
-                    type="textarea"
-                    label="Add annotation"
-                    placeholder="Write a note about this video..."
-                  />
-                  <button type="submit" class="rumbl-tab is-cta">Post Note</button>
+                  <div class="rumbl-composer-row">
+                    <.input
+                      field={@annotation_form[:at]}
+                      type="text"
+                      aria-label="Timestamp"
+                      placeholder="0:30"
+                      class="rumbl-composer-input"
+                      required
+                    />
+                    <div class="rumbl-composer-divider" aria-hidden="true"></div>
+                    <.input
+                      field={@annotation_form[:body]}
+                      type="textarea"
+                      rows="1"
+                      aria-label="Message"
+                      class="rumbl-composer-input rumbl-composer-textarea"
+                      phx-hook="AutoGrowTextarea"
+                      placeholder="Write a note about this timestamp..."
+                      required
+                    />
+                    <button
+                      type="submit"
+                      class="rumbl-tab is-cta"
+                      aria-label="Post annotation"
+                      title="Post annotation"
+                    >
+                      <.icon name="hero-paper-airplane" class="size-5" />
+                    </button>
+                  </div>
                 </.form>
               </section>
             <% else %>
@@ -337,5 +377,14 @@ defmodule RumblWeb.RingLive.Components.MainContent do
       <% end %>
     </main>
     """
+  end
+
+  defp video_embed_src(video, nil) do
+    "https://www.youtube.com/embed/#{Rumbl.Multimedia.Video.youtube_id(video)}"
+  end
+
+  defp video_embed_src(video, start_seconds)
+       when is_integer(start_seconds) and start_seconds >= 0 do
+    "https://www.youtube.com/embed/#{Rumbl.Multimedia.Video.youtube_id(video)}?start=#{start_seconds}&autoplay=1"
   end
 end

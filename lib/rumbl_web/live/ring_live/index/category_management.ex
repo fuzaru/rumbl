@@ -33,9 +33,10 @@ defmodule RumblWeb.RingLive.Index.CategoryManagement do
   def save_category(socket, category_params) do
     normalized_params = normalize_name_params(category_params)
     changeset = category_changeset(normalized_params)
+    ring_id = socket.assigns.selected_ring.id
 
     if changeset.valid? do
-      case Multimedia.create_category(normalized_params) do
+      case Multimedia.create_category(ring_id, normalized_params) do
         {:ok, _category} ->
           {:noreply,
            socket
@@ -98,7 +99,8 @@ defmodule RumblWeb.RingLive.Index.CategoryManagement do
   end
 
   def delete_category(socket, category_id) do
-    category = Multimedia.get_category!(category_id)
+    ring_id = socket.assigns.selected_ring.id
+    category = Multimedia.get_category_for_ring!(category_id, ring_id)
 
     case Multimedia.delete_category(category) do
       {:ok, _category} ->
@@ -116,8 +118,12 @@ defmodule RumblWeb.RingLive.Index.CategoryManagement do
       {:noreply, Phoenix.LiveView.put_flash(socket, :error, "Category not found.")}
   end
 
-  defp refresh_category_assigns(socket) do
-    categories = Multimedia.list_categories()
+  def refresh_category_assigns(socket) do
+    categories =
+      case socket.assigns[:selected_ring] do
+        %{id: ring_id} when is_binary(ring_id) -> Multimedia.list_categories_for_ring(ring_id)
+        _ -> []
+      end
 
     socket
     |> assign(:all_categories, categories)

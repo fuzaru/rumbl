@@ -4,42 +4,141 @@
   current_scope={@current_scope}
   show_nav={false}
 >
-  <section class="rumbl-page">
-    <header class="rumbl-page-header">
-      <p class="rumbl-page-kicker">Profile</p>
-      <h1 class="rumbl-page-title">{@user.name}</h1>
-      <p class="rumbl-page-subtitle">@{@user.username}</p>
-    </header>
+  <section class="rumbl-profile-page">
+    <.link
+      id="profile-back"
+      navigate={~p"/rings"}
+      class="rumbl-profile-back-icon"
+      aria-label="Back to rings"
+      title="Back"
+    >
+      <.icon name="hero-arrow-left" class="size-6" />
+    </.link>
 
-    <article id="user-profile-card" class="rumbl-page-card rumbl-profile-card">
-      <div class="rumbl-profile-lead">
-        <div class="rumbl-avatar rumbl-avatar-lg">{String.first(@user.name)}</div>
-        <div class="min-w-0">
-          <p class="truncate text-lg font-semibold text-[#f4f7ff]">{@user.name}</p>
-          <p class="truncate text-sm text-[#a8b4d1]">@{@user.username}</p>
-        </div>
+    <section class="rumbl-profile-scene">
+      <div class="rumbl-profile-banner"></div>
+
+      <article id="user-profile-card" class="rumbl-profile-shell">
+        <header class="rumbl-profile-topbar">
+          <div class="rumbl-profile-identity">
+            <div class="rumbl-profile-avatar-xl">
+              {String.first(@user.name || @user.username || "U")}
+            </div>
+            <div class="min-w-0">
+              <h1 class="truncate text-2xl font-bold text-[#f4f7ff]">{@user.name}</h1>
+              <p class="truncate text-sm text-[#a8b4d1]">@{@user.username}</p>
+            </div>
+          </div>
+        </header>
+
+        <section class="rumbl-profile-data-card">
+          <article class="rumbl-profile-data-row">
+            <div>
+              <p class="rumbl-profile-data-label">Display Name</p>
+              <p class="rumbl-profile-data-value">{@user.name}</p>
+            </div>
+            <button
+              :if={@is_self}
+              id="edit-display-name"
+              type="button"
+              phx-click="open_profile_edit_modal"
+              phx-value-field="name"
+              class="rumbl-profile-row-action"
+            >
+              Edit
+            </button>
+          </article>
+
+          <article class="rumbl-profile-data-row">
+            <div>
+              <p class="rumbl-profile-data-label">Username</p>
+              <p class="rumbl-profile-data-value">@{@user.username}</p>
+            </div>
+            <button
+              :if={@is_self}
+              id="edit-username"
+              type="button"
+              phx-click="open_profile_edit_modal"
+              phx-value-field="username"
+              class="rumbl-profile-row-action"
+            >
+              Edit
+            </button>
+          </article>
+
+          <article class="rumbl-profile-data-row">
+            <div>
+              <p class="rumbl-profile-data-label">Member Since</p>
+              <p class="rumbl-profile-data-value">
+                {Calendar.strftime(@user.inserted_at, "%B %d, %Y")}
+              </p>
+            </div>
+          </article>
+        </section>
+      </article>
+    </section>
+
+    <%= if @profile_edit_modal_open do %>
+      <div class="rumbl-modal-layer">
+        <button
+          type="button"
+          class="rumbl-modal-backdrop"
+          phx-click="close_profile_edit_modal"
+          aria-label="Close profile edit modal"
+        >
+        </button>
+        <section id="profile-edit-modal" class="rumbl-video-modal">
+          <div class="rumbl-video-modal-header">
+            <h2 class="rumbl-video-modal-title">
+              {if(@profile_edit_field == "username",
+                do: "Edit Username",
+                else: "Edit Display Name"
+              )}
+            </h2>
+            <button
+              id="profile-edit-modal-close"
+              type="button"
+              phx-click="close_profile_edit_modal"
+              class="rumbl-video-modal-close"
+              aria-label="Close"
+            >
+              <.icon name="hero-x-mark" class="size-5" />
+            </button>
+          </div>
+
+          <.form
+            for={@profile_edit_form}
+            id="profile-edit-form"
+            phx-change="validate_profile_field"
+            phx-submit="save_profile_field"
+            class="rumbl-form-stack"
+          >
+            <.input
+              :if={@profile_edit_field == "name"}
+              field={@profile_edit_form[:name]}
+              type="text"
+              label="Display Name"
+              required
+            />
+            <.input
+              :if={@profile_edit_field == "username"}
+              field={@profile_edit_form[:username]}
+              type="text"
+              label="Username"
+              required
+            />
+
+            <div class="rumbl-video-modal-actions">
+              <button type="button" phx-click="close_profile_edit_modal" class="rumbl-tab">
+                Cancel
+              </button>
+              <button id="save-profile-field-button" type="submit" class="rumbl-tab is-cta">
+                Save
+              </button>
+            </div>
+          </.form>
+        </section>
       </div>
-
-      <div class="rumbl-info-grid">
-        <div class="rumbl-info-cell">
-          <p class="rumbl-info-label">Name</p>
-          <p class="rumbl-info-value">{@user.name}</p>
-        </div>
-        <div class="rumbl-info-cell">
-          <p class="rumbl-info-label">Username</p>
-          <p class="rumbl-info-value">@{@user.username}</p>
-        </div>
-        <div class="rumbl-info-cell">
-          <p class="rumbl-info-label">Member since</p>
-          <p class="rumbl-info-value">{Calendar.strftime(@user.inserted_at, "%B %d, %Y")}</p>
-        </div>
-      </div>
-    </article>
-
-    <div class="flex items-center gap-2">
-      <.link :if={@current_user} id="profile-home" navigate={~p"/rings"} class="rumbl-tab">
-        Back to rings
-      </.link>
-    </div>
+    <% end %>
   </section>
 </Layouts.app>

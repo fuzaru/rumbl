@@ -126,27 +126,38 @@ defmodule Rumbl.Multimedia do
   # ============================================================================
 
   @doc """
-  Returns all categories.
+  Returns all categories for a workspace ring.
   """
-  def list_categories do
-    Category
-    |> order_by([c], c.name)
-    |> Repo.all()
+  def list_categories_for_ring(ring_id) when is_binary(ring_id) do
+    case Ecto.UUID.cast(ring_id) do
+      {:ok, cast_ring_id} ->
+        Category
+        |> where([c], c.ring_id == ^cast_ring_id)
+        |> order_by([c], c.name)
+        |> Repo.all()
+
+      :error ->
+        []
+    end
   end
+
+  def list_categories_for_ring(_ring_id), do: []
 
   @doc """
   Returns category options for forms.
   """
-  def category_options do
-    list_categories()
+  def category_options(ring_id) when is_binary(ring_id) do
+    list_categories_for_ring(ring_id)
     |> Enum.map(&{&1.name, &1.id})
   end
 
+  def category_options(_ring_id), do: []
+
   @doc """
-  Gets a category by name.
+  Gets a category by name in a workspace ring.
   """
-  def get_category_by_name(name) do
-    Repo.get_by(Category, name: name)
+  def get_category_by_name(name, ring_id) when is_binary(name) and is_binary(ring_id) do
+    Repo.get_by(Category, name: name, ring_id: ring_id)
   end
 
   @doc """
@@ -155,11 +166,18 @@ defmodule Rumbl.Multimedia do
   def get_category!(id), do: Repo.get!(Category, id)
 
   @doc """
-  Creates a category.
+  Gets a category by id scoped to a ring.
   """
-  def create_category(attrs \\ %{}) do
+  def get_category_for_ring!(id, ring_id) do
+    Repo.get_by!(Category, id: id, ring_id: ring_id)
+  end
+
+  @doc """
+  Creates a category in a workspace ring.
+  """
+  def create_category(ring_id, attrs \\ %{}) when is_binary(ring_id) do
     %Category{}
-    |> Category.changeset(attrs)
+    |> Category.changeset(Map.put(attrs, "ring_id", ring_id))
     |> Repo.insert()
   end
 

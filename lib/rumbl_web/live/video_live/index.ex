@@ -66,6 +66,7 @@ defmodule RumblWeb.VideoLive.Index do
     socket
     |> Show.clear_workspace()
     |> Phoenix.Component.assign(:annotations, [])
+    |> Phoenix.Component.assign(:selected_video_start_seconds, nil)
     |> Watch.reset_annotation_form()
   end
 
@@ -125,11 +126,34 @@ defmodule RumblWeb.VideoLive.Index do
     {:noreply, clear_ring_workspace(socket)}
   end
 
-  def dispatch_event("add_annotation", %{"annotation" => %{"body" => body}}, socket, _rings) do
-    case Watch.add_annotation(socket, body) do
+  def dispatch_event("add_annotation", %{"annotation" => annotation_params}, socket, _rings) do
+    body = Map.get(annotation_params, "body", "")
+    at = Map.get(annotation_params, "at", "")
+
+    case Watch.add_annotation(socket, at, body) do
       {:ok, socket} -> {:noreply, socket |> assign_annotations()}
       {:error, socket} -> {:noreply, socket}
     end
+  end
+
+  def dispatch_event(
+        "seek_annotation_timestamp",
+        %{"at" => at},
+        %{assigns: %{selected_video: selected_video}} = socket,
+        _rings
+      )
+      when not is_nil(selected_video) do
+    seconds =
+      case Integer.parse(at) do
+        {milliseconds, ""} when milliseconds >= 0 -> div(milliseconds, 1000)
+        _ -> 0
+      end
+
+    {:noreply, Phoenix.Component.assign(socket, :selected_video_start_seconds, seconds)}
+  end
+
+  def dispatch_event("seek_annotation_timestamp", _params, socket, _rings) do
+    {:noreply, socket}
   end
 
   def dispatch_event("delete_workspace_video", %{"video_slug" => video_slug}, socket, _rings) do

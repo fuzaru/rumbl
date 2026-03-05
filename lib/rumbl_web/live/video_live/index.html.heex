@@ -167,19 +167,26 @@
     <%= if @current_user do %>
       <div class="rumbl-bottom-profile-wrap">
         <div class="rumbl-bottom-profile">
-          <.link
-            id="videos-bottom-profile"
-            navigate={~p"/users/#{@current_user.id}"}
-            class="rumbl-bottom-profile-main"
-          >
-            <div class="rumbl-profile-avatar">
-              {String.first(@current_user.username || @current_user.name || "R")}
+          <details class="rumbl-bottom-profile-menu">
+            <summary id="videos-bottom-profile" class="rumbl-bottom-profile-main">
+              <div class="rumbl-profile-avatar">
+                {String.first(@current_user.username || @current_user.name || "R")}
+              </div>
+              <div class="min-w-0">
+                <p class="truncate text-sm font-semibold text-[#f2f5ff]">{@current_user.name}</p>
+                <p class="truncate text-xs text-[#9ea9c5]">@{@current_user.username}</p>
+              </div>
+              <.icon
+                name="hero-chevron-up"
+                class="rumbl-dropdown-chevron ml-auto size-4 text-[#9ea9c5]"
+              />
+            </summary>
+            <div class="rumbl-bottom-profile-menu-items">
+              <.link id="videos-edit-profile" navigate={~p"/user"} class="rumbl-panel-menu-item">
+                <.icon name="hero-pencil-square" class="size-4" /> Edit Profile
+              </.link>
             </div>
-            <div class="min-w-0">
-              <p class="truncate text-sm font-semibold text-[#f2f5ff]">{@current_user.name}</p>
-              <p class="truncate text-xs text-[#9ea9c5]">@{@current_user.username}</p>
-            </div>
-          </.link>
+          </details>
           <.link
             id="videos-bottom-logout"
             href={~p"/sessions"}

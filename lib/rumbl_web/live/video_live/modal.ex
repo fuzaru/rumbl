@@ -3,11 +3,8 @@ defmodule RumblWeb.VideoLive.Modal do
   alias Rumbl.Multimedia.Video
 
   def init_assigns(socket, ring_options) do
-    categories = Multimedia.list_categories()
-
     socket
-    |> Phoenix.Component.assign(:all_categories, categories)
-    |> Phoenix.Component.assign(:categories, Enum.map(categories, &{&1.name, &1.id}))
+    |> assign_category_options_for_ring(nil)
     |> Phoenix.Component.assign(:ring_options, ring_options)
     |> Phoenix.Component.assign(:video_modal_open, false)
     |> Phoenix.Component.assign(:video_modal_mode, :new)
@@ -23,6 +20,7 @@ defmodule RumblWeb.VideoLive.Modal do
     changeset = Multimedia.change_video(%Video{}, %{"ring_id" => ring_id || ""})
 
     socket
+    |> assign_category_options_for_ring(ring_id)
     |> Phoenix.Component.assign(:video_modal_open, true)
     |> Phoenix.Component.assign(:video_modal_mode, :new)
     |> Phoenix.Component.assign(:video_modal_title, "Add Video")
@@ -36,6 +34,7 @@ defmodule RumblWeb.VideoLive.Modal do
       changeset = Multimedia.change_video(video)
 
       socket
+      |> assign_category_options_for_ring(video.ring_id)
       |> Phoenix.Component.assign(:video_modal_open, true)
       |> Phoenix.Component.assign(:video_modal_mode, :edit)
       |> Phoenix.Component.assign(:video_modal_title, "Edit Video")
@@ -52,12 +51,16 @@ defmodule RumblWeb.VideoLive.Modal do
   def close_modal(socket), do: Phoenix.Component.assign(socket, :video_modal_open, false)
 
   def validate_modal(socket, video_params) do
+    selected_ring_id = Map.get(video_params, "ring_id", "")
+
     changeset =
       socket.assigns.video_modal_video
       |> Multimedia.change_video(video_params)
       |> Map.put(:action, :validate)
 
-    Phoenix.Component.assign(socket, :video_modal_form, Phoenix.Component.to_form(changeset))
+    socket
+    |> assign_category_options_for_ring(selected_ring_id)
+    |> Phoenix.Component.assign(:video_modal_form, Phoenix.Component.to_form(changeset))
   end
 
   def save_modal(socket, video_params) do
@@ -90,5 +93,19 @@ defmodule RumblWeb.VideoLive.Modal do
              )}
         end
     end
+  end
+
+  defp assign_category_options_for_ring(socket, ring_id) when is_binary(ring_id) do
+    categories = Multimedia.list_categories_for_ring(ring_id)
+
+    socket
+    |> Phoenix.Component.assign(:all_categories, categories)
+    |> Phoenix.Component.assign(:categories, Enum.map(categories, &{&1.name, &1.id}))
+  end
+
+  defp assign_category_options_for_ring(socket, _ring_id) do
+    socket
+    |> Phoenix.Component.assign(:all_categories, [])
+    |> Phoenix.Component.assign(:categories, [])
   end
 end

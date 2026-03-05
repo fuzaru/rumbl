@@ -14,6 +14,7 @@ defmodule RumblWeb.RingLive.Index do
     "open_video",
     "back_to_rings",
     "add_annotation",
+    "seek_annotation_timestamp",
     "delete_workspace_video",
     "save_video_modal"
   ]
@@ -72,6 +73,7 @@ defmodule RumblWeb.RingLive.Index do
         :active_now_collapsed,
         keep_active_now_collapsed?(socket.assigns.live_action, socket)
       )
+      |> CategoryManagement.refresh_category_assigns()
       |> Invitations.refresh_invitation_requests()
       |> sync_presence_state()
 
@@ -90,6 +92,7 @@ defmodule RumblWeb.RingLive.Index do
      |> assign(:page_title, "My Rings")
      |> assign(:active_panel, :rings)
      |> VideoState.clear_ring_workspace()
+     |> CategoryManagement.refresh_category_assigns()
      |> sync_presence_state()}
   end
 
@@ -99,6 +102,7 @@ defmodule RumblWeb.RingLive.Index do
      |> assign(:page_title, "Invitation Requests")
      |> assign(:active_panel, :requests)
      |> VideoState.clear_ring_workspace()
+     |> CategoryManagement.refresh_category_assigns()
      |> Invitations.refresh_invitation_requests()
      |> sync_presence_state()}
   end
@@ -189,7 +193,13 @@ defmodule RumblWeb.RingLive.Index do
   end
 
   def handle_event(event, params, socket) when event in @video_passthrough_events do
-    VideoState.dispatch_event(event, params, socket, socket.assigns.rings)
+    case VideoState.dispatch_event(event, params, socket, socket.assigns.rings) do
+      {:noreply, updated_socket} ->
+        {:noreply, CategoryManagement.refresh_category_assigns(updated_socket)}
+
+      other ->
+        other
+    end
   end
 
   def handle_event("open_video_from_search", %{"video_slug" => video_slug}, socket) do
@@ -271,7 +281,10 @@ defmodule RumblWeb.RingLive.Index do
   def handle_event(event, params, socket) when event in @video_events do
     case VideoState.dispatch_event(event, params, socket, socket.assigns.rings) do
       {:noreply, updated_socket} ->
-        {:noreply, maybe_sync_presence(updated_socket, event)}
+        {:noreply,
+         updated_socket
+         |> CategoryManagement.refresh_category_assigns()
+         |> maybe_sync_presence(event)}
 
       other ->
         other
