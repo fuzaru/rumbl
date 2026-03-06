@@ -989,6 +989,154 @@ html.auth-switching .auth-card {
   gap: 0.85rem;
 }
 
+.rumbl-video-insights {
+  flex: 1 1 auto;
+  min-height: 8rem;
+  border-radius: 0.85rem;
+  border: var(--rumbl-border-soft);
+  background: rgba(10, 13, 20, 0.56);
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.rumbl-video-insight-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8ea1cf;
+}
+
+.rumbl-mini-timeline-wrap {
+  border-radius: 0.55rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.5rem 0.55rem 0.65rem;
+}
+
+.rumbl-mini-timeline-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.rumbl-mini-timeline-time {
+  border-radius: 0.38rem;
+  border: 1px solid rgba(148, 183, 255, 0.35);
+  background: rgba(148, 183, 255, 0.13);
+  color: #dbe7ff;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.74rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.rumbl-mini-timeline {
+  position: relative;
+  margin-top: 0.42rem;
+  height: 1.2rem;
+}
+
+.rumbl-mini-timeline-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 3px;
+  border-radius: 9999px;
+  transform: translateY(-50%);
+  background: rgba(134, 154, 211, 0.35);
+}
+
+.rumbl-mini-timeline-now {
+  position: absolute;
+  top: 50%;
+  width: 2px;
+  height: 0.95rem;
+  border-radius: 9999px;
+  transform: translate(-50%, -50%);
+  background: #dce6ff;
+  box-shadow: 0 0 0 1px rgba(220, 230, 255, 0.2);
+  transition: left 1s linear;
+}
+
+.rumbl-mini-timeline-marker {
+  position: absolute;
+  top: 50%;
+  width: 1.05rem;
+  height: 1.05rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid rgba(155, 190, 255, 0.75);
+  background: #2f4f96;
+  color: #eef4ff;
+  font-size: 0.56rem;
+  font-weight: 700;
+  transform: translate(-50%, -50%);
+  transition: transform var(--rumbl-transition-fast), background-color var(--rumbl-transition-fast);
+}
+
+.rumbl-mini-timeline-marker:hover {
+  transform: translate(-50%, -50%) scale(1.12);
+  background: #4a72cc;
+}
+
+.rumbl-mini-timeline-marker.is-active {
+  background: #5c7ee0;
+  border-color: rgba(190, 210, 255, 0.9);
+}
+
+.rumbl-mini-timeline-marker::after {
+  content: attr(data-author);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 0.45rem);
+  transform: translateX(-50%);
+  padding: 0.12rem 0.4rem;
+  border-radius: 0.35rem;
+  font-size: 0.68rem;
+  white-space: nowrap;
+  color: #e8eeff;
+  background: rgba(9, 13, 22, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--rumbl-transition-fast);
+}
+
+.rumbl-mini-timeline-marker:hover::after {
+  opacity: 1;
+}
+
+.rumbl-video-insight-actions {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.rumbl-insight-action {
+  border-radius: 0.52rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: #d8e2fb;
+  padding: 0.4rem 0.62rem;
+  font-size: 0.8rem;
+  transition:
+    background-color var(--rumbl-transition-fast),
+    border-color var(--rumbl-transition-fast),
+    color var(--rumbl-transition-fast);
+}
+
+.rumbl-insight-action:hover {
+  background: rgba(148, 183, 255, 0.16);
+  border-color: rgba(148, 183, 255, 0.45);
+  color: #eff4ff;
+}
+
 .rumbl-video-stage-top {
   display: flex;
   align-items: baseline;
@@ -1013,9 +1161,8 @@ html.auth-switching .auth-card {
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: #080a10;
-  min-height: 14rem;
-  height: clamp(14rem, 40vh, 32rem);
-  max-height: 75vh;
+  width: 100%;
+  aspect-ratio: 16 / 9;
 }
 
 .rumbl-video-embed {
@@ -1026,15 +1173,33 @@ html.auth-switching .auth-card {
 }
 
 .rumbl-annotations {
+  flex: 1 1 auto;
+  min-height: 0;
   border-radius: 0.85rem;
   border: var(--rumbl-border-soft);
   background: rgba(10, 13, 20, 0.56);
   padding: 0.85rem;
   overflow: auto;
-  min-height: 14rem;
-  max-height: 75vh;
   display: flex;
   flex-direction: column;
+}
+
+.rumbl-annotations-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.rumbl-annotations-count {
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #dbe4ff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0.2rem 0.45rem;
 }
 
 .rumbl-annotation-list {
@@ -1043,6 +1208,55 @@ html.auth-switching .auth-card {
   max-height: none;
   overflow-y: auto;
   padding-right: 0.2rem;
+}
+
+.rumbl-annotation-expand {
+  margin-top: 0.55rem;
+  margin-left: 0.1rem;
+  border-radius: 0.65rem;
+  border: 1px solid rgba(148, 183, 255, 0.28);
+  background: rgba(56, 86, 154, 0.12);
+  padding: 0.55rem;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateX(14px);
+  transition:
+    max-height 240ms ease,
+    opacity var(--rumbl-transition-fast),
+    transform var(--rumbl-transition-fast);
+}
+
+.rumbl-annotation-expand.is-open {
+  max-height: 14rem;
+  opacity: 1;
+  transform: translateX(-10px);
+}
+
+.rumbl-annotation-expand-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+}
+
+.rumbl-annotation-expand-meta {
+  font-size: 0.76rem;
+  color: #b8c8ec;
+}
+
+.rumbl-annotation-expand-body {
+  margin-top: 0.45rem;
+  color: #edf2ff;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.rumbl-annotation-expand-empty {
+  font-size: 0.84rem;
+  color: #9fb1dd;
 }
 
 .rumbl-annotation-row {
@@ -1107,24 +1321,10 @@ html.auth-switching .auth-card {
   color: #f4f7ff;
 }
 
-.rumbl-annotation-preview {
-  flex: 1 1 auto;
-  min-height: 8rem;
-  border-radius: 0.85rem;
-  border: var(--rumbl-border-soft);
-  background: rgba(10, 13, 20, 0.56);
-  padding: 0.85rem;
-  overflow: auto;
-  max-height: 70vh;
-}
-
-.rumbl-annotation-preview-body {
-  margin-top: 0.5rem;
-  font-size: 0.95rem;
-  line-height: 1.45;
-  color: rgba(232, 238, 255, 0.9);
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
+.rumbl-annotation-author {
+  margin-top: 0.32rem;
+  font-size: 0.74rem;
+  color: #97a8d3;
 }
 
 .rumbl-annotation-composer {

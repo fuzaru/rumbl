@@ -67,6 +67,8 @@ defmodule RumblWeb.VideoLive.Index do
     |> Show.clear_workspace()
     |> Phoenix.Component.assign(:annotations, [])
     |> Phoenix.Component.assign(:selected_annotation, nil)
+    |> Phoenix.Component.assign(:player_time_seconds, 0)
+    |> Phoenix.Component.assign(:player_duration_seconds, 0)
     |> Watch.reset_annotation_form()
   end
 
@@ -147,6 +149,49 @@ defmodule RumblWeb.VideoLive.Index do
     {:noreply, Phoenix.Component.assign(socket, :selected_annotation, selected_annotation)}
   end
 
+  def dispatch_event("clear_selected_annotation", _params, socket, _rings) do
+    {:noreply, Phoenix.Component.assign(socket, :selected_annotation, nil)}
+  end
+
+  def dispatch_event(
+        "select_annotation_from_timeline",
+        %{"annotation_id" => annotation_id},
+        socket,
+        _rings
+      ) do
+    selected_annotation =
+      with {id, ""} <- Integer.parse(annotation_id) do
+        Enum.find(socket.assigns.annotations, &(&1.id == id))
+      else
+        _ -> nil
+      end
+
+    if selected_annotation do
+      seconds = div(selected_annotation.at, 1000)
+
+      {:noreply,
+       socket
+       |> Phoenix.Component.assign(:selected_annotation, selected_annotation)
+       |> Phoenix.Component.assign(:player_time_seconds, seconds)
+       |> Phoenix.LiveView.push_event("seek_video", %{seconds: seconds})}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def dispatch_event("video_player_metrics", params, socket, _rings) do
+    current_seconds =
+      normalize_seconds(params["seconds"], socket.assigns[:player_time_seconds] || 0)
+
+    duration_seconds =
+      normalize_seconds(params["duration_seconds"], socket.assigns[:player_duration_seconds] || 0)
+
+    {:noreply,
+     socket
+     |> Phoenix.Component.assign(:player_time_seconds, current_seconds)
+     |> Phoenix.Component.assign(:player_duration_seconds, duration_seconds)}
+  end
+
   def dispatch_event(
         "seek_annotation_timestamp",
         %{"at" => at},
@@ -160,7 +205,10 @@ defmodule RumblWeb.VideoLive.Index do
         _ -> 0
       end
 
-    {:noreply, Phoenix.LiveView.push_event(socket, "seek_video", %{seconds: seconds})}
+    {:noreply,
+     socket
+     |> Phoenix.Component.assign(:player_time_seconds, seconds)
+     |> Phoenix.LiveView.push_event("seek_video", %{seconds: seconds})}
   end
 
   def dispatch_event("seek_annotation_timestamp", _params, socket, _rings) do
@@ -294,4 +342,16 @@ defmodule RumblWeb.VideoLive.Index do
         ~p"/videos"
     end
   end
+
+  defp normalize_seconds(value, _fallback) when is_integer(value) and value >= 0, do: value
+  defp normalize_seconds(value, _fallback) when is_float(value) and value >= 0, do: floor(value)
+
+  defp normalize_seconds(value, fallback) when is_binary(value) do
+    case Integer.parse(value) do
+      {seconds, ""} when seconds >= 0 -> seconds
+      _ -> fallback
+    end
+  end
+
+  defp normalize_seconds(_value, fallback), do: fallback
 end

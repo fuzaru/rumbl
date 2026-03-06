@@ -85,7 +85,7 @@ defmodule RumblWeb.RingLive.Components.MainContent do
             </div>
 
             <%= if @selected_video do %>
-              <div class="rumbl-workspace-main grid items-stretch gap-4 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
+              <div class="rumbl-workspace-main grid items-stretch gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(17rem,0.72fr)]">
                 <div class="rumbl-video-column">
                   <article id="ring-selected-video" class="rumbl-video-stage">
                     <div class="rumbl-video-stage-top">
@@ -121,29 +121,108 @@ defmodule RumblWeb.RingLive.Components.MainContent do
                     <% end %>
                   </article>
 
-                  <section id="annotation-preview" class="rumbl-annotation-preview">
-                    <p class="text-xs font-semibold uppercase tracking-wide text-base-content/60">
-                      Selected Annotation
-                    </p>
-                    <%= if @selected_annotation do %>
-                      <p class="mt-2 text-xs font-mono text-[#94b7ff]">
-                        {RumblWeb.VideoLive.Watch.format_time(@selected_annotation.at)}
-                      </p>
-                      <p class="rumbl-annotation-preview-body">
-                        {@selected_annotation.body}
-                      </p>
-                    <% else %>
-                      <p class="mt-2 text-sm text-base-content/65">
-                        Click an annotation message on the right to preview the full content here.
-                      </p>
-                    <% end %>
+                  <section id="video-insights" class="rumbl-video-insights">
+                    <div class="rumbl-video-insights-header">
+                      <h3 class="text-sm font-semibold uppercase tracking-wide text-base-content/70">
+                        Now Playing Insights
+                      </h3>
+                    </div>
+
+                    <% max_timeline_ms =
+                      timeline_max_ms(
+                        @annotations,
+                        @player_time_seconds,
+                        @player_duration_seconds
+                      ) %>
+                    <div class="rumbl-mini-timeline-wrap">
+                      <div class="rumbl-mini-timeline-head">
+                        <p class="rumbl-video-insight-label">Timeline</p>
+                        <span class="rumbl-mini-timeline-time">
+                          {RumblWeb.VideoLive.Watch.format_time(@player_time_seconds * 1000)}
+                        </span>
+                      </div>
+                      <div class="rumbl-mini-timeline" aria-label="Annotation timeline">
+                        <div class="rumbl-mini-timeline-track"></div>
+                        <span
+                          class="rumbl-mini-timeline-now"
+                          style={
+                            "left: #{timeline_marker_left(@player_time_seconds * 1000, max_timeline_ms)}"
+                          }
+                          aria-hidden="true"
+                        >
+                        </span>
+                        <button
+                          :for={annotation <- @annotations}
+                          type="button"
+                          phx-click="select_annotation_from_timeline"
+                          phx-value-annotation_id={annotation.id}
+                          class={[
+                            "rumbl-mini-timeline-marker",
+                            @selected_annotation && @selected_annotation.id == annotation.id &&
+                              "is-active"
+                          ]}
+                          style={"left: #{timeline_marker_left(annotation.at, max_timeline_ms)}"}
+                          data-author={annotation.author}
+                          title={
+                            "#{RumblWeb.VideoLive.Watch.format_time(annotation.at)} - #{annotation.body}"
+                          }
+                          aria-label={
+                            "Seek to #{RumblWeb.VideoLive.Watch.format_time(annotation.at)}"
+                          }
+                        >
+                          {author_initial(annotation.author)}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="rumbl-video-insight-actions">
+                      <button
+                        id="copy-timestamp-link"
+                        type="button"
+                        phx-hook="CopyTimestampLink"
+                        data-video-url={@selected_video.url}
+                        data-seconds={@player_time_seconds}
+                        class="rumbl-insight-action"
+                      >
+                        Copy Link at Current Time
+                      </button>
+                    </div>
                   </section>
                 </div>
 
                 <section id="video-annotations" class="rumbl-annotations">
-                  <h3 class="text-sm font-semibold uppercase tracking-wide text-base-content/70">
-                    Annotations
-                  </h3>
+                  <div class="rumbl-annotations-header">
+                    <h3 class="text-sm font-semibold uppercase tracking-wide text-base-content/70">
+                      Annotations
+                    </h3>
+                    <span class="rumbl-annotations-count">{length(@annotations)}</span>
+                  </div>
+
+                  <article class={["rumbl-annotation-expand", @selected_annotation && "is-open"]}>
+                    <%= if @selected_annotation do %>
+                      <div class="rumbl-annotation-expand-head">
+                        <p class="rumbl-annotation-expand-meta">
+                          {RumblWeb.VideoLive.Watch.format_time(@selected_annotation.at)} • by {@selected_annotation.author}
+                        </p>
+                        <button
+                          type="button"
+                          phx-click="clear_selected_annotation"
+                          class="rumbl-video-modal-close"
+                          aria-label="Close selected annotation"
+                        >
+                          <.icon name="hero-x-mark" class="size-4" />
+                        </button>
+                      </div>
+                      <p class="rumbl-annotation-expand-body">
+                        {@selected_annotation.body}
+                      </p>
+                    <% else %>
+                      <p class="rumbl-annotation-expand-empty">
+                        Click an annotation or timeline bubble to expand details.
+                      </p>
+                    <% end %>
+                  </article>
+
                   <div class="mt-2 space-y-2 rumbl-annotation-list">
                     <%= for annotation <- @annotations do %>
                       <article
@@ -165,6 +244,7 @@ defmodule RumblWeb.RingLive.Components.MainContent do
                         >
                           {RumblWeb.VideoLive.Watch.format_time(annotation.at)}
                         </button>
+                        <p class="rumbl-annotation-author">{annotation.author}</p>
                         <p class="rumbl-annotation-message">
                           {annotation.body}
                         </p>
@@ -405,4 +485,32 @@ defmodule RumblWeb.RingLive.Components.MainContent do
   defp video_embed_src(video) do
     "https://www.youtube.com/embed/#{Rumbl.Multimedia.Video.youtube_id(video)}?enablejsapi=1&playsinline=1"
   end
+
+  defp timeline_max_ms(_annotations, player_time_seconds, player_duration_seconds) do
+    if is_integer(player_duration_seconds) and player_duration_seconds > 0 do
+      player_duration_seconds * 1000
+    else
+      max(player_time_seconds * 1000, 1000)
+    end
+  end
+
+  defp timeline_marker_left(at_ms, max_ms) when is_integer(at_ms) and max_ms > 0 do
+    position =
+      at_ms
+      |> max(0)
+      |> min(max_ms)
+      |> Kernel./(max_ms)
+      |> Kernel.*(100)
+
+    :erlang.float_to_binary(position, decimals: 2) <> "%"
+  end
+
+  defp author_initial(author) when is_binary(author) and author != "" do
+    author
+    |> String.trim()
+    |> String.first()
+    |> String.upcase()
+  end
+
+  defp author_initial(_author), do: "U"
 end

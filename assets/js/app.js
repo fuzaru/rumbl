@@ -76,22 +76,123 @@ const AutoGrowTextarea = {
 
 const YouTubeSeek = {
   mounted() {
+    this.lastPushedSecond = -1
+    this.lastPushedDuration = -1
+    this.player = null
+
+    this.pushMetrics = (seconds, durationSeconds) => {
+      const safeSeconds = Number.isFinite(seconds) ? Math.max(0, Math.floor(seconds)) : 0
+      const safeDuration = Number.isFinite(durationSeconds) ? Math.max(0, Math.floor(durationSeconds)) : 0
+
+      if (safeSeconds === this.lastPushedSecond && safeDuration === this.lastPushedDuration) return
+
+      this.lastPushedSecond = safeSeconds
+      this.lastPushedDuration = safeDuration
+      this.pushEvent("video_player_metrics", {seconds: safeSeconds, duration_seconds: safeDuration})
+    }
+
+    this.pollPlayer = () => {
+      if (!this.player || typeof this.player.getCurrentTime !== "function") return
+      this.pushMetrics(this.player.getCurrentTime(), this.player.getDuration())
+    }
+
+    this.ensurePlayer = () => {
+      if (window.YT && window.YT.Player) {
+        this.player = new window.YT.Player(this.el.id, {
+          events: {
+            onReady: () => {
+              this.pollPlayer()
+              this.pollInterval = window.setInterval(this.pollPlayer, 1000)
+            },
+            onStateChange: () => this.pollPlayer(),
+          },
+        })
+        return
+      }
+
+      if (!window.__rumblYouTubeApiPromise) {
+        window.__rumblYouTubeApiPromise = new Promise((resolve) => {
+          const previousReady = window.onYouTubeIframeAPIReady
+          window.onYouTubeIframeAPIReady = () => {
+            if (typeof previousReady === "function") previousReady()
+            resolve()
+          }
+
+          const script = document.createElement("script")
+          script.src = "https://www.youtube.com/iframe_api"
+          script.async = true
+          document.head.appendChild(script)
+        })
+      }
+
+      window.__rumblYouTubeApiPromise.then(() => this.ensurePlayer())
+    }
+
+    this.ensurePlayer()
+
     this.handleEvent("seek_video", ({seconds}) => {
       if (!Number.isFinite(seconds)) return
 
       const targetSeconds = Math.max(0, Math.floor(seconds))
-      const playerWindow = this.el.contentWindow
-      if (!playerWindow) return
+      if (!this.player || typeof this.player.seekTo !== "function") return
 
-      playerWindow.postMessage(
-        JSON.stringify({event: "command", func: "seekTo", args: [targetSeconds, true]}),
-        "https://www.youtube.com"
-      )
-      playerWindow.postMessage(
-        JSON.stringify({event: "command", func: "playVideo", args: []}),
-        "https://www.youtube.com"
-      )
+      this.player.seekTo(targetSeconds, true)
+      this.player.playVideo()
+
+      this.pushMetrics(targetSeconds, this.lastPushedDuration)
     })
+  },
+  destroyed() {
+    if (this.pollInterval) {
+      window.clearInterval(this.pollInterval)
+    }
+
+    if (this.player && typeof this.player.destroy === "function") {
+      this.player.destroy()
+    }
+  }
+}
+
+const CopyTimestampLink = {
+  mounted() {
+    this.handleClick = async () => {
+      const rawUrl = this.el.dataset.videoUrl
+      const seconds = Number.parseInt(this.el.dataset.seconds || "0", 10)
+
+      if (!rawUrl) return
+
+      let link = rawUrl
+
+      try {
+        const url = new URL(rawUrl)
+        const safeSeconds = Number.isFinite(seconds) && seconds > 0 ? seconds : 0
+        if (safeSeconds > 0) {
+          url.searchParams.set("t", `${safeSeconds}s`)
+        }
+        link = url.toString()
+      } catch (_error) {
+        // Keep raw URL if parsing fails.
+      }
+
+      try {
+        await navigator.clipboard.writeText(link)
+        const original = this.el.textContent
+        this.el.textContent = "Copied!"
+        window.setTimeout(() => {
+          this.el.textContent = original
+        }, 1200)
+      } catch (_error) {
+        // Ignore clipboard failures silently.
+      }
+    }
+
+    this.el.addEventListener("click", this.handleClick)
+  },
+
+  destroyed() {
+    if (this.handleClick) {
+      this.el.removeEventListener("click", this.handleClick)
+    }
   }
 }
 
@@ -104,6 +205,7 @@ const liveSocket = new LiveSocket("/live", Socket, {
     FocusHintDisplayName,
     AutoGrowTextarea,
     YouTubeSeek,
+    CopyTimestampLink,
   },
 })
 

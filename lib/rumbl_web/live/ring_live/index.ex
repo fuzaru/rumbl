@@ -15,6 +15,9 @@ defmodule RumblWeb.RingLive.Index do
     "back_to_rings",
     "add_annotation",
     "preview_annotation",
+    "clear_selected_annotation",
+    "select_annotation_from_timeline",
+    "video_player_metrics",
     "seek_annotation_timestamp",
     "delete_workspace_video",
     "save_video_modal"

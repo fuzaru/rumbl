@@ -4,6 +4,8 @@ defmodule RumblWeb.VideoLive.Watch do
   def init_assigns(socket) do
     socket
     |> Phoenix.Component.assign(:annotations, [])
+    |> Phoenix.Component.assign(:player_time_seconds, 0)
+    |> Phoenix.Component.assign(:player_duration_seconds, 0)
     |> put_annotation_form("", "")
   end
 
