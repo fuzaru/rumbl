@@ -104,12 +104,22 @@
 
 /* This file is for your main application CSS */
 
+:root {
+  --rumbl-app-background:
+    radial-gradient(circle at 20% -10%, rgba(122, 162, 255, 0.14), rgba(122, 162, 255, 0) 45%),
+    linear-gradient(180deg, #151822 0%, #10131b 100%);
+  --rumbl-border-soft: 1px solid rgba(255, 255, 255, 0.08);
+  --rumbl-border-popover: 1px solid rgba(255, 255, 255, 0.12);
+  --rumbl-popover-bg: rgba(15, 18, 27, 0.97);
+  --rumbl-card-gradient: linear-gradient(180deg, #1d2029 0%, #1a1d27 100%);
+  --rumbl-floating-shadow: 0 -6px 20px rgba(0, 0, 0, 0.22);
+  --rumbl-transition-fast: 150ms ease;
+}
+
 html,
 body {
   min-height: 100%;
-  background:
-    radial-gradient(circle at 20% -10%, rgba(122, 162, 255, 0.14), rgba(122, 162, 255, 0) 45%),
-    linear-gradient(180deg, #151822 0%, #10131b 100%);
+  background: var(--rumbl-app-background);
   background-color: #10131b;
 }
 
@@ -267,17 +277,7 @@ html.auth-switching .auth-card {
   position: relative;
   display: flex;
   min-height: 100vh;
-  background:
-    radial-gradient(circle at 20% -10%, rgba(122, 162, 255, 0.14), rgba(122, 162, 255, 0) 45%),
-    linear-gradient(180deg, #151822 0%, #10131b 100%);
-}
-
-.rumbl-page {
-  max-width: 68rem;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  background: var(--rumbl-app-background);
 }
 
 .rumbl-profile-page {
@@ -330,34 +330,24 @@ html.auth-switching .auth-card {
   gap: 0.8rem;
 }
 
-.rumbl-profile-avatar-xl {
-  width: 4.1rem;
-  height: 4.1rem;
+.rumbl-profile-avatar-xl,
+.rumbl-profile-avatar,
+.rumbl-avatar {
   border-radius: 9999px;
-  border: 3px solid #0d111a;
-  margin-top: -2.5rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #5e86ff, #4ed7c4);
   color: #0f1624;
-  font-size: 1.1rem;
   font-weight: 800;
 }
 
-.rumbl-profile-edit-cta {
-  border-radius: 0.6rem;
-  border: 1px solid rgba(115, 132, 255, 0.5);
-  background: #4d63dc;
-  color: #eef2ff;
-  padding: 0.72rem 1rem;
-  font-size: 0.95rem;
-  transition: background-color 150ms ease, border-color 150ms ease;
-}
-
-.rumbl-profile-edit-cta:hover {
-  background: #4358cc;
-  border-color: rgba(132, 146, 255, 0.7);
+.rumbl-profile-avatar-xl {
+  width: 4.1rem;
+  height: 4.1rem;
+  border: 3px solid #0d111a;
+  margin-top: -2.5rem;
+  font-size: 1.1rem;
 }
 
 .rumbl-profile-data-card {
@@ -546,11 +536,7 @@ html.auth-switching .auth-card {
   transform: translateY(-1px);
 }
 
-.rumbl-rail-logo.is-active {
-  border-color: rgba(144, 182, 255, 0.8);
-  background: #2a3652;
-}
-
+.rumbl-rail-logo.is-active,
 .rumbl-rail-node.is-active {
   border-color: rgba(144, 182, 255, 0.8);
   background: #2a3652;
@@ -624,8 +610,25 @@ html.auth-switching .auth-card {
   position: relative;
 }
 
-.rumbl-panel-menu-summary {
+.rumbl-panel-menu-summary,
+.rumbl-panel-category-summary,
+.rumbl-bottom-profile-main {
   list-style: none;
+}
+
+.rumbl-panel-menu-summary::-webkit-details-marker,
+.rumbl-panel-category-summary::-webkit-details-marker,
+.rumbl-bottom-profile-main::-webkit-details-marker {
+  display: none;
+}
+
+.rumbl-panel-menu-summary::marker,
+.rumbl-panel-category-summary::marker,
+.rumbl-bottom-profile-main::marker {
+  content: "";
+}
+
+.rumbl-panel-menu-summary {
   width: fit-content;
   display: inline-flex;
   align-items: center;
@@ -633,15 +636,7 @@ html.auth-switching .auth-card {
   border-radius: 0.55rem;
   padding: 0.2rem 0.25rem;
   cursor: pointer;
-  transition: background-color 150ms ease;
-}
-
-.rumbl-panel-menu-summary::-webkit-details-marker {
-  display: none;
-}
-
-.rumbl-panel-menu-summary::marker {
-  content: "";
+  transition: background-color var(--rumbl-transition-fast);
 }
 
 .rumbl-panel-menu-summary:hover {
@@ -656,20 +651,26 @@ html.auth-switching .auth-card {
   transition: transform 160ms ease;
 }
 
-.rumbl-panel-menu[open] .rumbl-dropdown-chevron {
+.rumbl-panel-menu[open] .rumbl-dropdown-chevron,
+.rumbl-panel-category-group[open] .rumbl-dropdown-chevron,
+.rumbl-bottom-profile-menu[open] .rumbl-dropdown-chevron {
   transform: rotate(180deg);
 }
 
-.rumbl-panel-menu-items {
+.rumbl-panel-menu-items,
+.rumbl-bottom-profile-menu-items {
   position: absolute;
+  border-radius: 0.65rem;
+  border: var(--rumbl-border-popover);
+  background: var(--rumbl-popover-bg);
+  padding: 0.35rem;
+}
+
+.rumbl-panel-menu-items {
   top: calc(100% + 0.35rem);
   left: 0;
   z-index: 10;
   min-width: 12.5rem;
-  border-radius: 0.65rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(15, 18, 27, 0.97);
-  padding: 0.35rem;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.32);
 }
 
@@ -682,7 +683,7 @@ html.auth-switching .auth-card {
   align-items: center;
   gap: 0.45rem;
   font-size: 0.88rem;
-  transition: background-color 150ms ease, color 150ms ease;
+  transition: background-color var(--rumbl-transition-fast), color var(--rumbl-transition-fast);
 }
 
 .rumbl-panel-menu-item:hover {
@@ -717,7 +718,6 @@ html.auth-switching .auth-card {
 }
 
 .rumbl-panel-category-summary {
-  list-style: none;
   border-radius: 0.55rem;
   display: flex;
   align-items: center;
@@ -725,20 +725,8 @@ html.auth-switching .auth-card {
   cursor: pointer;
 }
 
-.rumbl-panel-category-summary::-webkit-details-marker {
-  display: none;
-}
-
-.rumbl-panel-category-summary::marker {
-  content: "";
-}
-
 .rumbl-panel-category-summary:hover {
   background: rgba(148, 183, 255, 0.1);
-}
-
-.rumbl-panel-category-group[open] .rumbl-dropdown-chevron {
-  transform: rotate(180deg);
 }
 
 .rumbl-panel-category-videos {
@@ -763,12 +751,7 @@ html.auth-switching .auth-card {
   align-items: center;
   gap: 0.35rem;
   font-size: 0.9rem;
-  transition: background-color 150ms ease, color 150ms ease;
-}
-
-.rumbl-panel-channel-item:hover {
-  background: rgba(148, 183, 255, 0.13);
-  color: #eff4ff;
+  transition: background-color var(--rumbl-transition-fast), color var(--rumbl-transition-fast);
 }
 
 .rumbl-panel-channel-item.is-active {
@@ -785,20 +768,21 @@ html.auth-switching .auth-card {
   pointer-events: auto;
 }
 
+.rumbl-bottom-profile,
+.rumbl-annotation-composer {
+  border-right: var(--rumbl-border-soft);
+  border-top: var(--rumbl-border-soft);
+  background: var(--rumbl-card-gradient);
+  border-radius: 0.8rem;
+  box-shadow: var(--rumbl-floating-shadow);
+  padding: 0.45rem 0.55rem;
+}
+
 .rumbl-bottom-profile {
   width: 100%;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, #1d2029 0%, #1a1d27 100%);
-  border-top-left-radius: 0.8rem;
-  border-top-right-radius: 0.8rem;
-  border-bottom-left-radius: 0.8rem;
-  border-bottom-right-radius: 0.8rem;
-  padding: 0.45rem 0.55rem;
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.22);
 }
 
 .rumbl-bottom-profile-main {
@@ -809,17 +793,8 @@ html.auth-switching .auth-card {
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  list-style: none;
   cursor: pointer;
-  transition: background-color 150ms ease;
-}
-
-.rumbl-bottom-profile-main::-webkit-details-marker {
-  display: none;
-}
-
-.rumbl-bottom-profile-main::marker {
-  content: "";
+  transition: background-color var(--rumbl-transition-fast);
 }
 
 .rumbl-bottom-profile-main:hover {
@@ -833,33 +808,17 @@ html.auth-switching .auth-card {
 }
 
 .rumbl-bottom-profile-menu-items {
-  position: absolute;
   left: 0;
   right: 0;
   bottom: calc(100% + 0.4rem);
   z-index: 60;
-  border-radius: 0.65rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(15, 18, 27, 0.97);
-  padding: 0.35rem;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
-}
-
-.rumbl-bottom-profile-menu[open] .rumbl-dropdown-chevron {
-  transform: rotate(180deg);
 }
 
 .rumbl-profile-avatar {
   width: 2rem;
   height: 2rem;
-  border-radius: 9999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #5e86ff, #4ed7c4);
-  color: #0f1624;
   font-size: 0.78rem;
-  font-weight: 800;
 }
 
 .rumbl-bottom-profile-logout {
@@ -872,7 +831,7 @@ html.auth-switching .auth-card {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 150ms ease, color 150ms ease;
+  transition: background-color var(--rumbl-transition-fast), color var(--rumbl-transition-fast);
 }
 
 .rumbl-bottom-profile-logout:hover {
@@ -889,10 +848,11 @@ html.auth-switching .auth-card {
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
-  transition: background-color 150ms ease, color 150ms ease;
+  transition: background-color var(--rumbl-transition-fast), color var(--rumbl-transition-fast);
 }
 
-.rumbl-panel-item:hover {
+.rumbl-panel-item:hover,
+.rumbl-panel-channel-item:hover {
   background: rgba(148, 183, 255, 0.13);
   color: #eff4ff;
 }
@@ -970,7 +930,10 @@ html.auth-switching .auth-card {
   padding: 0.42rem 0.72rem;
   font-size: 0.87rem;
   color: #c9d2e8;
-  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+  transition:
+    background-color var(--rumbl-transition-fast),
+    border-color var(--rumbl-transition-fast),
+    color var(--rumbl-transition-fast);
 }
 
 .rumbl-tab:hover {
@@ -997,7 +960,7 @@ html.auth-switching .auth-card {
 
 .rumbl-row {
   border-radius: 0.8rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: var(--rumbl-border-soft);
   background: rgba(10, 13, 20, 0.64);
   padding: 0.8rem 0.95rem;
   display: flex;
@@ -1014,7 +977,7 @@ html.auth-switching .auth-card {
 
 .rumbl-video-stage {
   border-radius: 0.85rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: var(--rumbl-border-soft);
   background: rgba(10, 13, 20, 0.64);
   padding: 0.9rem;
 }
@@ -1050,33 +1013,77 @@ html.auth-switching .auth-card {
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: #080a10;
+  min-height: 14rem;
+  height: clamp(14rem, 40vh, 32rem);
+  max-height: 75vh;
 }
 
 .rumbl-video-embed {
   width: 100%;
-  aspect-ratio: 16 / 9;
+  height: 100%;
   border: 0;
   display: block;
 }
 
 .rumbl-annotations {
   border-radius: 0.85rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: var(--rumbl-border-soft);
   background: rgba(10, 13, 20, 0.56);
   padding: 0.85rem;
+  overflow: auto;
+  min-height: 14rem;
+  max-height: 75vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .rumbl-annotation-list {
-  max-height: min(60vh, 34rem);
+  flex: 1 1 auto;
+  min-height: 8rem;
+  max-height: none;
   overflow-y: auto;
   padding-right: 0.2rem;
 }
 
 .rumbl-annotation-row {
+  cursor: pointer;
   border-radius: 0.65rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: var(--rumbl-border-soft);
   background: rgba(255, 255, 255, 0.03);
   padding: 0.58rem 0.62rem;
+  transition: background-color var(--rumbl-transition-fast), border-color var(--rumbl-transition-fast);
+}
+
+.rumbl-annotation-row:hover {
+  background: rgba(148, 183, 255, 0.08);
+  border-color: rgba(148, 183, 255, 0.3);
+}
+
+.rumbl-annotation-row.is-active {
+  background: rgba(148, 183, 255, 0.12);
+  border-color: rgba(148, 183, 255, 0.45);
+}
+
+.rumbl-annotation-time {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 0.45rem;
+  border: 1px solid rgba(148, 183, 255, 0.35);
+  background: rgba(148, 183, 255, 0.13);
+  padding: 0.18rem 0.45rem;
+  font-size: 0.73rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  color: #94b7ff;
+  transition:
+    background-color var(--rumbl-transition-fast),
+    border-color var(--rumbl-transition-fast),
+    color var(--rumbl-transition-fast);
+}
+
+.rumbl-annotation-time:hover {
+  background: rgba(148, 183, 255, 0.2);
+  border-color: rgba(148, 183, 255, 0.5);
+  color: #bdd2ff;
 }
 
 .rumbl-annotation-message {
@@ -1092,11 +1099,11 @@ html.auth-switching .auth-card {
   transition: color 140ms ease;
 }
 
-.rumbl-annotation-message:hover {
+.rumbl-annotation-row:hover .rumbl-annotation-message {
   color: #edf2ff;
 }
 
-.rumbl-annotation-message.is-active {
+.rumbl-annotation-row.is-active .rumbl-annotation-message {
   color: #f4f7ff;
 }
 
@@ -1104,9 +1111,11 @@ html.auth-switching .auth-card {
   flex: 1 1 auto;
   min-height: 8rem;
   border-radius: 0.85rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: var(--rumbl-border-soft);
   background: rgba(10, 13, 20, 0.56);
   padding: 0.85rem;
+  overflow: auto;
+  max-height: 70vh;
 }
 
 .rumbl-annotation-preview-body {
@@ -1123,12 +1132,6 @@ html.auth-switching .auth-card {
   bottom: 8px;
   margin-top: auto;
   z-index: 20;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, #1d2029 0%, #1a1d27 100%);
-  border-radius: 0.8rem;
-  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.22);
-  padding: 0.45rem 0.55rem;
 }
 
 .rumbl-annotation-form {
@@ -1196,27 +1199,6 @@ html.auth-switching .auth-card {
   border: 1px dashed rgba(255, 255, 255, 0.2);
   padding: 1.1rem;
   background: rgba(255, 255, 255, 0.02);
-}
-
-.rumbl-mini-action {
-  border-radius: 0.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  padding: 0.24rem 0.45rem;
-  font-size: 0.75rem;
-  color: #d6dff5;
-  background: rgba(255, 255, 255, 0.03);
-  transition: background-color 150ms ease, border-color 150ms ease;
-}
-
-.rumbl-mini-action:hover {
-  background: rgba(148, 183, 255, 0.16);
-  border-color: rgba(148, 183, 255, 0.5);
-}
-
-.rumbl-mini-action.is-danger:hover {
-  background: rgba(238, 89, 111, 0.18);
-  border-color: rgba(238, 89, 111, 0.5);
-  color: #ffd9e0;
 }
 
 .rumbl-toolbar-icon-action {
@@ -1401,13 +1383,6 @@ html.auth-switching .auth-card {
 .rumbl-avatar {
   width: 2.2rem;
   height: 2.2rem;
-  border-radius: 9999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #5e86ff, #4ed7c4);
-  color: #0f1624;
-  font-weight: 800;
 }
 
 @media (max-width: 1200px) {

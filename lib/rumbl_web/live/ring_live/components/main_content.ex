@@ -101,16 +101,9 @@ defmodule RumblWeb.RingLive.Components.MainContent do
                       <div class="rumbl-video-embed-wrap">
                         <iframe
                           id="ring-video-embed"
+                          phx-hook="YouTubeSeek"
                           class="rumbl-video-embed"
-                          src={
-                            video_embed_src(
-                              @selected_video,
-                              if(is_integer(@selected_video_start_seconds),
-                                do: @selected_video_start_seconds,
-                                else: nil
-                              )
-                            )
-                          }
+                          src={video_embed_src(@selected_video)}
                           title={@selected_video.title}
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                           referrerpolicy="strict-origin-when-cross-origin"
@@ -153,27 +146,28 @@ defmodule RumblWeb.RingLive.Components.MainContent do
                   </h3>
                   <div class="mt-2 space-y-2 rumbl-annotation-list">
                     <%= for annotation <- @annotations do %>
-                      <article id={"annotation-#{annotation.id}"} class="rumbl-annotation-row">
+                      <article
+                        id={"annotation-#{annotation.id}"}
+                        phx-click="preview_annotation"
+                        phx-value-annotation_id={annotation.id}
+                        class={[
+                          "rumbl-annotation-row",
+                          @selected_annotation && @selected_annotation.id == annotation.id &&
+                            "is-active"
+                        ]}
+                      >
                         <button
                           type="button"
                           phx-click="seek_annotation_timestamp"
                           phx-value-at={annotation.at}
-                          class="text-xs font-mono text-[#94b7ff] transition hover:text-[#bdd2ff]"
+                          phx-stop-propagation
+                          class="rumbl-annotation-time"
                         >
                           {RumblWeb.VideoLive.Watch.format_time(annotation.at)}
                         </button>
-                        <button
-                          type="button"
-                          phx-click="preview_annotation"
-                          phx-value-annotation_id={annotation.id}
-                          class={[
-                            "rumbl-annotation-message",
-                            @selected_annotation && @selected_annotation.id == annotation.id &&
-                              "is-active"
-                          ]}
-                        >
+                        <p class="rumbl-annotation-message">
                           {annotation.body}
-                        </button>
+                        </p>
                       </article>
                     <% end %>
                   </div>
@@ -408,12 +402,7 @@ defmodule RumblWeb.RingLive.Components.MainContent do
     """
   end
 
-  defp video_embed_src(video, nil) do
-    "https://www.youtube.com/embed/#{Rumbl.Multimedia.Video.youtube_id(video)}"
-  end
-
-  defp video_embed_src(video, start_seconds)
-       when is_integer(start_seconds) and start_seconds >= 0 do
-    "https://www.youtube.com/embed/#{Rumbl.Multimedia.Video.youtube_id(video)}?start=#{start_seconds}&autoplay=1"
+  defp video_embed_src(video) do
+    "https://www.youtube.com/embed/#{Rumbl.Multimedia.Video.youtube_id(video)}?enablejsapi=1&playsinline=1"
   end
 end

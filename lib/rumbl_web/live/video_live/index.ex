@@ -67,7 +67,6 @@ defmodule RumblWeb.VideoLive.Index do
     |> Show.clear_workspace()
     |> Phoenix.Component.assign(:annotations, [])
     |> Phoenix.Component.assign(:selected_annotation, nil)
-    |> Phoenix.Component.assign(:selected_video_start_seconds, nil)
     |> Watch.reset_annotation_form()
   end
 
@@ -161,7 +160,7 @@ defmodule RumblWeb.VideoLive.Index do
         _ -> 0
       end
 
-    {:noreply, Phoenix.Component.assign(socket, :selected_video_start_seconds, seconds)}
+    {:noreply, Phoenix.LiveView.push_event(socket, "seek_video", %{seconds: seconds})}
   end
 
   def dispatch_event("seek_annotation_timestamp", _params, socket, _rings) do

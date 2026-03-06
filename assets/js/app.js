@@ -74,6 +74,27 @@ const AutoGrowTextarea = {
   }
 }
 
+const YouTubeSeek = {
+  mounted() {
+    this.handleEvent("seek_video", ({seconds}) => {
+      if (!Number.isFinite(seconds)) return
+
+      const targetSeconds = Math.max(0, Math.floor(seconds))
+      const playerWindow = this.el.contentWindow
+      if (!playerWindow) return
+
+      playerWindow.postMessage(
+        JSON.stringify({event: "command", func: "seekTo", args: [targetSeconds, true]}),
+        "https://www.youtube.com"
+      )
+      playerWindow.postMessage(
+        JSON.stringify({event: "command", func: "playVideo", args: []}),
+        "https://www.youtube.com"
+      )
+    })
+  }
+}
+
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
@@ -82,6 +103,7 @@ const liveSocket = new LiveSocket("/live", Socket, {
     ...colocatedHooks,
     FocusHintDisplayName,
     AutoGrowTextarea,
+    YouTubeSeek,
   },
 })
 
