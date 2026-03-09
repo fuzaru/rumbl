@@ -67,6 +67,7 @@ defmodule RumblWeb.VideoLive.Index do
     |> Show.clear_workspace()
     |> Phoenix.Component.assign(:annotations, [])
     |> Phoenix.Component.assign(:selected_annotation, nil)
+    |> Phoenix.Component.assign(:annotation_timestamp_filter, nil)
     |> Phoenix.Component.assign(:player_time_seconds, 0)
     |> Phoenix.Component.assign(:player_duration_seconds, 0)
     |> Watch.reset_annotation_form()
@@ -117,11 +118,19 @@ defmodule RumblWeb.VideoLive.Index do
   end
 
   def dispatch_event("select_ring", %{"ring_id" => ring_id}, socket, rings) do
-    {:noreply, socket |> Show.load_ring_workspace(ring_id, rings) |> assign_annotations()}
+    {:noreply,
+     socket
+     |> Show.load_ring_workspace(ring_id, rings)
+     |> Phoenix.Component.assign(:annotation_timestamp_filter, nil)
+     |> assign_annotations()}
   end
 
   def dispatch_event("open_video", %{"video_slug" => video_slug}, socket, _rings) do
-    {:noreply, socket |> Show.select_video(video_slug) |> assign_annotations()}
+    {:noreply,
+     socket
+     |> Show.select_video(video_slug)
+     |> Phoenix.Component.assign(:annotation_timestamp_filter, nil)
+     |> assign_annotations()}
   end
 
   def dispatch_event("back_to_rings", _params, socket, _rings) do
@@ -136,6 +145,23 @@ defmodule RumblWeb.VideoLive.Index do
       {:ok, socket} -> {:noreply, socket |> assign_annotations()}
       {:error, socket} -> {:noreply, socket}
     end
+  end
+
+  def dispatch_event(
+        "update_annotation_form",
+        %{"annotation" => annotation_params},
+        socket,
+        _rings
+      ) do
+    at = Map.get(annotation_params, "at", "")
+    body = Map.get(annotation_params, "body", "")
+
+    {:noreply,
+     Phoenix.Component.assign(
+       socket,
+       :annotation_form,
+       Phoenix.Component.to_form(%{"at" => at, "body" => body}, as: :annotation)
+     )}
   end
 
   def dispatch_event("preview_annotation", %{"annotation_id" => annotation_id}, socket, _rings) do
@@ -155,28 +181,28 @@ defmodule RumblWeb.VideoLive.Index do
 
   def dispatch_event(
         "select_annotation_from_timeline",
-        %{"annotation_id" => annotation_id},
+        %{"at" => at},
         socket,
         _rings
       ) do
-    selected_annotation =
-      with {id, ""} <- Integer.parse(annotation_id) do
-        Enum.find(socket.assigns.annotations, &(&1.id == id))
-      else
-        _ -> nil
-      end
+    case Integer.parse(at) do
+      {milliseconds, ""} when milliseconds >= 0 ->
+        seconds = div(milliseconds, 1000)
 
-    if selected_annotation do
-      seconds = div(selected_annotation.at, 1000)
+        {:noreply,
+         socket
+         |> Phoenix.Component.assign(:annotation_timestamp_filter, milliseconds)
+         |> Phoenix.Component.assign(:selected_annotation, nil)
+         |> Phoenix.Component.assign(:player_time_seconds, seconds)
+         |> Phoenix.LiveView.push_event("seek_video", %{seconds: seconds})}
 
-      {:noreply,
-       socket
-       |> Phoenix.Component.assign(:selected_annotation, selected_annotation)
-       |> Phoenix.Component.assign(:player_time_seconds, seconds)
-       |> Phoenix.LiveView.push_event("seek_video", %{seconds: seconds})}
-    else
-      {:noreply, socket}
+      _ ->
+        {:noreply, socket}
     end
+  end
+
+  def dispatch_event("clear_annotation_filter", _params, socket, _rings) do
+    {:noreply, Phoenix.Component.assign(socket, :annotation_timestamp_filter, nil)}
   end
 
   def dispatch_event("video_player_metrics", params, socket, _rings) do

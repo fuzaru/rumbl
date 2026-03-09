@@ -32,7 +32,7 @@ defmodule RumblWeb.RingLive.IndexTest do
     assert has_element?(view, "#video-annotations")
   end
 
-  test "expands selected annotation details when clicking an annotation", %{conn: conn} do
+  test "shows annotation preview modal when clicking an annotation", %{conn: conn} do
     user = user_fixture()
     ring = ring_fixture(user)
     video = video_fixture(user, ring)
@@ -41,14 +41,95 @@ defmodule RumblWeb.RingLive.IndexTest do
 
     {:ok, view, _html} = live(conn, ~p"/rings/#{ring.id}")
 
-    assert has_element?(view, ".rumbl-annotation-expand")
+    refute has_element?(view, "#annotation-preview-modal")
 
     view
     |> element("#annotation-#{annotation.id}")
     |> render_click()
 
-    assert has_element?(view, ".rumbl-annotation-expand.is-open")
-    assert has_element?(view, ".rumbl-annotation-expand-body")
+    assert has_element?(view, "#annotation-preview-modal")
+
+    view
+    |> element("#annotation-preview-modal-close")
+    |> render_click()
+
+    refute has_element?(view, "#annotation-preview-modal")
+  end
+
+  test "keeps timestamp while typing annotation message", %{conn: conn} do
+    user = user_fixture()
+    ring = ring_fixture(user)
+    _video = video_fixture(user, ring)
+    conn = log_in_user(conn, user)
+
+    {:ok, view, _html} = live(conn, ~p"/rings/#{ring.id}")
+
+    view
+    |> form("#annotation-form", %{"annotation" => %{"at" => "1:23", "body" => "hello"}})
+    |> render_change()
+
+    assert has_element?(view, "#annotation-form input[name='annotation[at]'][value='1:23']")
+  end
+
+  test "filters annotations by timeline timestamp and clears filter", %{conn: conn} do
+    user = user_fixture()
+    ring = ring_fixture(user)
+    video = video_fixture(user, ring)
+    annotation_a = annotation_fixture(user, video, %{"at" => 30_000, "body" => "A"})
+    annotation_b = annotation_fixture(user, video, %{"at" => 30_000, "body" => "B"})
+    annotation_c = annotation_fixture(user, video, %{"at" => 45_000, "body" => "C"})
+    conn = log_in_user(conn, user)
+
+    {:ok, view, _html} = live(conn, ~p"/rings/#{ring.id}")
+
+    assert has_element?(view, "#annotation-#{annotation_a.id}")
+    assert has_element?(view, "#annotation-#{annotation_b.id}")
+    assert has_element?(view, "#annotation-#{annotation_c.id}")
+
+    view
+    |> element("#timeline-marker-30000")
+    |> render_click()
+
+    assert has_element?(view, "#annotation-#{annotation_a.id}")
+    assert has_element?(view, "#annotation-#{annotation_b.id}")
+    refute has_element?(view, "#annotation-#{annotation_c.id}")
+    assert has_element?(view, "#annotation-filter-clear")
+
+    view
+    |> element("#annotation-filter-clear")
+    |> render_click()
+
+    assert has_element?(view, "#annotation-#{annotation_c.id}")
+  end
+
+  test "searches for a specific annotation from active now", %{conn: conn} do
+    user = user_fixture()
+    ring = ring_fixture(user)
+    video = video_fixture(user, ring)
+    annotation = annotation_fixture(user, video, %{"body" => "Need this exact cue"})
+    _other_annotation = annotation_fixture(user, video, %{"body" => "Different note"})
+    conn = log_in_user(conn, user)
+
+    {:ok, view, _html} = live(conn, ~p"/rings/#{ring.id}")
+
+    view
+    |> element("#ring-active-now-search-toggle")
+    |> render_click()
+
+    assert has_element?(view, "#annotation-search-modal")
+
+    view
+    |> form("#annotation-search-form-modal", %{"annotation_search" => %{"query" => "exact cue"}})
+    |> render_change()
+
+    assert has_element?(view, "#annotation-search-result-#{annotation.id}")
+
+    view
+    |> element("#annotation-search-result-#{annotation.id}")
+    |> render_click()
+
+    assert has_element?(view, "#annotation-preview-modal")
+    refute has_element?(view, "#annotation-search-modal")
   end
 
   test "shows invitation requests panel route", %{conn: conn} do

@@ -5,6 +5,115 @@ defmodule RumblWeb.RingLive.Components.Modals do
 
   def ring_modals(assigns) do
     ~H"""
+    <%= if @selected_annotation do %>
+      <div class="rumbl-modal-layer">
+        <button
+          type="button"
+          class="rumbl-modal-backdrop"
+          phx-click="clear_selected_annotation"
+          aria-label="Close annotation modal"
+        >
+        </button>
+        <section id="annotation-preview-modal" class="rumbl-video-modal">
+          <div class="rumbl-video-modal-header">
+            <h2 class="rumbl-video-modal-title">Annotation</h2>
+            <button
+              id="annotation-preview-modal-close"
+              type="button"
+              phx-click="clear_selected_annotation"
+              class="rumbl-video-modal-close"
+              aria-label="Close"
+            >
+              <.icon name="hero-x-mark" class="size-5" />
+            </button>
+          </div>
+
+          <div class="space-y-3">
+            <p class="text-sm text-base-content/70">
+              {RumblWeb.VideoLive.Watch.format_time(@selected_annotation.at)} • by {@selected_annotation.author}
+            </p>
+            <p class="text-base text-base-content whitespace-pre-wrap break-words">
+              {@selected_annotation.body}
+            </p>
+            <div class="rumbl-video-modal-actions">
+              <button
+                type="button"
+                phx-click="seek_annotation_timestamp"
+                phx-value-at={@selected_annotation.at}
+                class="rumbl-tab is-cta"
+              >
+                Jump to timestamp
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+    <% end %>
+
+    <%= if @annotation_search_modal_open do %>
+      <div class="rumbl-modal-layer">
+        <button
+          type="button"
+          class="rumbl-modal-backdrop"
+          phx-click="close_annotation_search_modal"
+          aria-label="Close annotation search modal"
+        >
+        </button>
+        <section id="annotation-search-modal" class="rumbl-video-modal">
+          <div class="rumbl-video-modal-header">
+            <h2 class="rumbl-video-modal-title">Find an annotation</h2>
+            <button
+              id="annotation-search-modal-close"
+              type="button"
+              phx-click="close_annotation_search_modal"
+              class="rumbl-video-modal-close"
+              aria-label="Close"
+            >
+              <.icon name="hero-x-mark" class="size-5" />
+            </button>
+          </div>
+
+          <.form
+            for={@annotation_search_form}
+            id="annotation-search-form-modal"
+            phx-change="search_annotations"
+          >
+            <.input
+              field={@annotation_search_form[:query]}
+              type="text"
+              placeholder="Search annotation text, author, or timestamp"
+            />
+          </.form>
+
+          <div class="mt-3 space-y-2">
+            <%= for annotation <- @annotation_search_results do %>
+              <button
+                id={"annotation-search-result-#{annotation.id}"}
+                type="button"
+                phx-click="select_annotation_from_search"
+                phx-value-annotation_id={annotation.id}
+                class="rumbl-row w-full text-left"
+              >
+                <div class="min-w-0 flex-1">
+                  <p class="truncate font-semibold text-sm text-base-content/70">
+                    {RumblWeb.VideoLive.Watch.format_time(annotation.at)} • {annotation.author}
+                  </p>
+                  <p class="truncate font-semibold" title={annotation.body}>
+                    {short_annotation_preview(annotation.body)}
+                  </p>
+                </div>
+                <.icon name="hero-arrow-right" class="size-4 shrink-0 text-base-content/60" />
+              </button>
+            <% end %>
+
+            <%= if @annotation_search_query != "" and @annotation_search_results == [] do %>
+              <p class="text-xs text-base-content/60">No annotations found.</p>
+            <% end %>
+          </div>
+        </section>
+      </div>
+    <% end %>
+
     <%= if @invite_modal_open do %>
       <div class="rumbl-modal-layer">
         <button
@@ -411,4 +520,20 @@ defmodule RumblWeb.RingLive.Components.Modals do
     <% end %>
     """
   end
+
+  defp short_annotation_preview(text) when is_binary(text) do
+    text
+    |> String.trim()
+    |> String.replace(~r/\s+/, " ")
+    |> String.slice(0, 90)
+    |> then(fn preview ->
+      if String.length(text) > 90 do
+        preview <> "…"
+      else
+        preview
+      end
+    end)
+  end
+
+  defp short_annotation_preview(_text), do: ""
 end

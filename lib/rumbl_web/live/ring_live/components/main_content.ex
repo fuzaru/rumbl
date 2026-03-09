@@ -141,6 +141,7 @@ defmodule RumblWeb.RingLive.Components.MainContent do
                           {RumblWeb.VideoLive.Watch.format_time(@player_time_seconds * 1000)}
                         </span>
                       </div>
+                      <% timeline_markers = grouped_timeline_markers(@annotations) %>
                       <div class="rumbl-mini-timeline" aria-label="Annotation timeline">
                         <div class="rumbl-mini-timeline-track"></div>
                         <span
@@ -152,25 +153,23 @@ defmodule RumblWeb.RingLive.Components.MainContent do
                         >
                         </span>
                         <button
-                          :for={annotation <- @annotations}
+                          :for={marker <- timeline_markers}
+                          id={"timeline-marker-#{marker.at}"}
                           type="button"
                           phx-click="select_annotation_from_timeline"
-                          phx-value-annotation_id={annotation.id}
+                          phx-value-at={marker.at}
                           class={[
                             "rumbl-mini-timeline-marker",
-                            @selected_annotation && @selected_annotation.id == annotation.id &&
-                              "is-active"
+                            marker.count > 1 && "is-cluster"
                           ]}
-                          style={"left: #{timeline_marker_left(annotation.at, max_timeline_ms)}"}
-                          data-author={annotation.author}
-                          title={
-                            "#{RumblWeb.VideoLive.Watch.format_time(annotation.at)} - #{annotation.body}"
-                          }
+                          style={"left: #{timeline_marker_left(marker.at, max_timeline_ms)}"}
+                          data-author={marker.tooltip}
+                          title={marker.tooltip}
                           aria-label={
-                            "Seek to #{RumblWeb.VideoLive.Watch.format_time(annotation.at)}"
+                            "Seek to #{RumblWeb.VideoLive.Watch.format_time(marker.at)}"
                           }
                         >
-                          {author_initial(annotation.author)}
+                          {marker.label}
                         </button>
                       </div>
                     </div>
@@ -191,40 +190,37 @@ defmodule RumblWeb.RingLive.Components.MainContent do
                 </div>
 
                 <section id="video-annotations" class="rumbl-annotations">
+                  <% filtered_annotations =
+                    filtered_annotations(@annotations, @annotation_timestamp_filter) %>
                   <div class="rumbl-annotations-header">
                     <h3 class="text-sm font-semibold uppercase tracking-wide text-base-content/70">
                       Annotations
                     </h3>
-                    <span class="rumbl-annotations-count">{length(@annotations)}</span>
+                    <span class="rumbl-annotations-count">{length(filtered_annotations)}</span>
                   </div>
 
-                  <article class={["rumbl-annotation-expand", @selected_annotation && "is-open"]}>
-                    <%= if @selected_annotation do %>
-                      <div class="rumbl-annotation-expand-head">
-                        <p class="rumbl-annotation-expand-meta">
-                          {RumblWeb.VideoLive.Watch.format_time(@selected_annotation.at)} • by {@selected_annotation.author}
-                        </p>
-                        <button
-                          type="button"
-                          phx-click="clear_selected_annotation"
-                          class="rumbl-video-modal-close"
-                          aria-label="Close selected annotation"
-                        >
-                          <.icon name="hero-x-mark" class="size-4" />
-                        </button>
-                      </div>
-                      <p class="rumbl-annotation-expand-body">
-                        {@selected_annotation.body}
+                  <%= if @annotation_timestamp_filter do %>
+                    <div class="mt-2 flex items-center justify-between gap-2">
+                      <p class="text-xs text-base-content/60">
+                        Showing {length(filtered_annotations)} annotation(s) at {RumblWeb.VideoLive.Watch.format_time(
+                          @annotation_timestamp_filter
+                        )}
                       </p>
-                    <% else %>
-                      <p class="rumbl-annotation-expand-empty">
-                        Click an annotation or timeline bubble to expand details.
-                      </p>
-                    <% end %>
-                  </article>
+                      <button
+                        id="annotation-filter-clear"
+                        type="button"
+                        phx-click="clear_annotation_filter"
+                        class="rumbl-tab"
+                        aria-label="Show all annotations"
+                        title="Show all annotations"
+                      >
+                        <.icon name="hero-arrow-left-on-rectangle" class="size-5" />
+                      </button>
+                    </div>
+                  <% end %>
 
                   <div class="mt-2 space-y-2 rumbl-annotation-list">
-                    <%= for annotation <- @annotations do %>
+                    <%= for annotation <- filtered_annotations do %>
                       <article
                         id={"annotation-#{annotation.id}"}
                         phx-click="preview_annotation"
@@ -258,6 +254,7 @@ defmodule RumblWeb.RingLive.Components.MainContent do
                 <.form
                   for={@annotation_form}
                   id="annotation-form"
+                  phx-change="update_annotation_form"
                   phx-submit="add_annotation"
                   class="rumbl-annotation-form"
                 >
@@ -513,4 +510,57 @@ defmodule RumblWeb.RingLive.Components.MainContent do
   end
 
   defp author_initial(_author), do: "U"
+
+  defp grouped_timeline_markers(annotations) do
+    annotations
+    |> Enum.group_by(& &1.at)
+    |> Enum.sort_by(fn {at, _annotations_at_time} -> at end)
+    |> Enum.map(fn {at, annotations_at_time} ->
+      first_annotation = List.first(annotations_at_time)
+      count = length(annotations_at_time)
+
+      %{
+        at: at,
+        count: count,
+        label:
+          if(count > 1,
+            do: Integer.to_string(count),
+            else: author_initial(first_annotation.author)
+          ),
+        tooltip: timeline_marker_tooltip(at, annotations_at_time)
+      }
+    end)
+  end
+
+  defp timeline_marker_tooltip(at, [annotation]) do
+    "#{RumblWeb.VideoLive.Watch.format_time(at)} - #{short_annotation_preview(annotation.body)}"
+  end
+
+  defp timeline_marker_tooltip(at, annotations_at_time) do
+    "#{RumblWeb.VideoLive.Watch.format_time(at)} - #{length(annotations_at_time)} annotations"
+  end
+
+  defp filtered_annotations(annotations, nil), do: annotations
+
+  defp filtered_annotations(annotations, at_ms) when is_integer(at_ms) do
+    Enum.filter(annotations, &(&1.at == at_ms))
+  end
+
+  defp filtered_annotations(annotations, _at_ms), do: annotations
+
+  defp short_annotation_preview(text) when is_binary(text) do
+    text
+    |> String.trim()
+    |> String.replace(~r/\s+/, " ")
+    |> String.slice(0, 80)
+    |> then(fn preview ->
+      if String.length(text) > 80 do
+        preview <> "…"
+      else
+        preview
+      end
+    end)
+  end
+
+  defp short_annotation_preview(_text), do: ""
 end

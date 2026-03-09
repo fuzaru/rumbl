@@ -1058,7 +1058,7 @@ html.auth-switching .auth-card {
   transform: translate(-50%, -50%);
   background: #dce6ff;
   box-shadow: 0 0 0 1px rgba(220, 230, 255, 0.2);
-  transition: left 1s linear;
+  transition: none;
 }
 
 .rumbl-mini-timeline-marker {
@@ -1084,9 +1084,12 @@ html.auth-switching .auth-card {
   background: #4a72cc;
 }
 
-.rumbl-mini-timeline-marker.is-active {
-  background: #5c7ee0;
-  border-color: rgba(190, 210, 255, 0.9);
+.rumbl-mini-timeline-marker.is-cluster {
+  width: 1.2rem;
+  height: 1.2rem;
+  background: #3f63b8;
+  border-color: rgba(188, 214, 255, 0.92);
+  font-size: 0.6rem;
 }
 
 .rumbl-mini-timeline-marker::after {
@@ -1208,55 +1211,6 @@ html.auth-switching .auth-card {
   max-height: none;
   overflow-y: auto;
   padding-right: 0.2rem;
-}
-
-.rumbl-annotation-expand {
-  margin-top: 0.55rem;
-  margin-left: 0.1rem;
-  border-radius: 0.65rem;
-  border: 1px solid rgba(148, 183, 255, 0.28);
-  background: rgba(56, 86, 154, 0.12);
-  padding: 0.55rem;
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  transform: translateX(14px);
-  transition:
-    max-height 240ms ease,
-    opacity var(--rumbl-transition-fast),
-    transform var(--rumbl-transition-fast);
-}
-
-.rumbl-annotation-expand.is-open {
-  max-height: 14rem;
-  opacity: 1;
-  transform: translateX(-10px);
-}
-
-.rumbl-annotation-expand-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.45rem;
-}
-
-.rumbl-annotation-expand-meta {
-  font-size: 0.76rem;
-  color: #b8c8ec;
-}
-
-.rumbl-annotation-expand-body {
-  margin-top: 0.45rem;
-  color: #edf2ff;
-  font-size: 0.92rem;
-  line-height: 1.4;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-.rumbl-annotation-expand-empty {
-  font-size: 0.84rem;
-  color: #9fb1dd;
 }
 
 .rumbl-annotation-row {
@@ -1432,10 +1386,6 @@ html.auth-switching .auth-card {
   background: linear-gradient(180deg, rgba(11, 14, 22, 0.96), rgba(13, 17, 27, 0.98));
   color: #f4f7ff;
   overflow-y: auto;
-}
-
-.rumbl-active-now-search-form {
-  margin-bottom: 0.55rem;
 }
 
 .rumbl-active-now.is-collapsed {

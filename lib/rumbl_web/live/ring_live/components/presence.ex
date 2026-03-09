@@ -5,14 +5,14 @@ defmodule RumblWeb.RingLive.Components.Presence do
     ~H"""
     <aside class={["rumbl-active-now", @selected_ring && @active_now_collapsed && "is-collapsed"]}>
       <%= if @selected_ring do %>
-        <.form
-          for={@panel_search_form}
-          id="ring-active-now-search-form"
-          phx-change="search_panel_catalog"
-          class="rumbl-active-now-search-form"
+        <button
+          id="ring-active-now-search-toggle"
+          type="button"
+          phx-click="open_annotation_search_modal"
+          class="rumbl-panel-search mb-2 flex w-full items-center gap-2 text-left"
         >
-          <.input field={@panel_search_form[:query]} type="text" placeholder="Search videos" />
-        </.form>
+          <.icon name="hero-magnifying-glass" class="size-4" /> Find an annotation
+        </button>
       <% end %>
 
       <h2 class="rumbl-active-now-title">Active Now</h2>
