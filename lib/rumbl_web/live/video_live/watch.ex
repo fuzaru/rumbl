@@ -19,6 +19,7 @@ defmodule RumblWeb.VideoLive.Watch do
       %{
         id: annotation.id,
         at: annotation.at,
+        user_id: annotation.user_id,
         author: annotation.user.name,
         body: annotation.body
       }

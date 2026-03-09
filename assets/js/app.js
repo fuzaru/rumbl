@@ -196,6 +196,34 @@ const CopyTimestampLink = {
   }
 }
 
+const PersistDetailsOpen = {
+  mounted() {
+    this.storageKey = `rumbl:details:${this.el.id}`
+
+    const savedOpenState = window.sessionStorage.getItem(this.storageKey)
+    if (savedOpenState === "true") this.el.open = true
+    if (savedOpenState === "false") this.el.open = false
+
+    this.handleToggle = () => {
+      window.sessionStorage.setItem(this.storageKey, this.el.open ? "true" : "false")
+    }
+
+    this.el.addEventListener("toggle", this.handleToggle)
+  },
+
+  updated() {
+    const savedOpenState = window.sessionStorage.getItem(this.storageKey)
+    if (savedOpenState === "true") this.el.open = true
+    if (savedOpenState === "false") this.el.open = false
+  },
+
+  destroyed() {
+    if (this.handleToggle) {
+      this.el.removeEventListener("toggle", this.handleToggle)
+    }
+  }
+}
+
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
@@ -206,6 +234,7 @@ const liveSocket = new LiveSocket("/live", Socket, {
     AutoGrowTextarea,
     YouTubeSeek,
     CopyTimestampLink,
+    PersistDetailsOpen,
   },
 })
 

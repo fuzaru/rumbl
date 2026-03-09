@@ -231,15 +231,31 @@ defmodule RumblWeb.RingLive.Components.MainContent do
                             "is-active"
                         ]}
                       >
-                        <button
-                          type="button"
-                          phx-click="seek_annotation_timestamp"
-                          phx-value-at={annotation.at}
-                          phx-stop-propagation
-                          class="rumbl-annotation-time"
-                        >
-                          {RumblWeb.VideoLive.Watch.format_time(annotation.at)}
-                        </button>
+                        <div class="flex items-center justify-between gap-2">
+                          <button
+                            type="button"
+                            phx-click="seek_annotation_timestamp"
+                            phx-value-at={annotation.at}
+                            phx-stop-propagation
+                            class="rumbl-annotation-time"
+                          >
+                            {RumblWeb.VideoLive.Watch.format_time(annotation.at)}
+                          </button>
+                          <button
+                            :if={@current_user && annotation.user_id == @current_user.id}
+                            id={"annotation-delete-#{annotation.id}"}
+                            type="button"
+                            phx-click="delete_annotation"
+                            phx-value-annotation_id={annotation.id}
+                            phx-stop-propagation
+                            data-confirm="Delete this annotation?"
+                            class="rumbl-toolbar-icon-action is-danger"
+                            aria-label="Delete annotation"
+                            title="Delete annotation"
+                          >
+                            <.icon name="hero-trash" class="size-4" />
+                          </button>
+                        </div>
                         <p class="rumbl-annotation-author">{annotation.author}</p>
                         <p class="rumbl-annotation-message">
                           {annotation.body}

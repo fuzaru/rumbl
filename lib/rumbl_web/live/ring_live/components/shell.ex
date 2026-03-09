@@ -46,7 +46,11 @@ defmodule RumblWeb.RingLive.Components.Shell do
       <%= if @active_panel == :rings and @selected_ring do %>
         <div class="rumbl-panel-header">
           <div class="rumbl-panel-header-top">
-            <details class="rumbl-panel-menu">
+            <details
+              id="ring-workspace-menu-details"
+              class="rumbl-panel-menu"
+              phx-hook="PersistDetailsOpen"
+            >
               <summary id="ring-workspace-menu" class="rumbl-panel-menu-summary">
                 <h2 class="rumbl-panel-title">{@selected_ring.name}</h2>
                 <.icon
@@ -98,7 +102,11 @@ defmodule RumblWeb.RingLive.Components.Shell do
             </div>
           <% end %>
           <%= for group <- grouped_videos do %>
-            <details id={"catalog-category-cat-#{group.id}"} class="rumbl-panel-category-group" open>
+            <details
+              id={"catalog-category-cat-#{group.id}"}
+              class="rumbl-panel-category-group"
+              phx-hook="PersistDetailsOpen"
+            >
               <summary
                 id={"catalog-category-summary-cat-#{group.id}"}
                 class="rumbl-panel-category-summary"
@@ -181,7 +189,11 @@ defmodule RumblWeb.RingLive.Components.Shell do
     <%= if @current_user do %>
       <div class="rumbl-bottom-profile-wrap">
         <div class="rumbl-bottom-profile">
-          <details class="rumbl-bottom-profile-menu">
+          <details
+            id="home-bottom-profile-menu"
+            class="rumbl-bottom-profile-menu"
+            phx-hook="PersistDetailsOpen"
+          >
             <summary id="home-bottom-profile" class="rumbl-bottom-profile-main">
               <div class="rumbl-profile-avatar">
                 {String.first(@current_user.username || @current_user.name || "R")}

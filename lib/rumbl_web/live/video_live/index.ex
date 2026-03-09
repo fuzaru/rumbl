@@ -205,6 +205,36 @@ defmodule RumblWeb.VideoLive.Index do
     {:noreply, Phoenix.Component.assign(socket, :annotation_timestamp_filter, nil)}
   end
 
+  def dispatch_event(
+        "delete_annotation",
+        %{"annotation_id" => annotation_id},
+        %{assigns: %{selected_video: selected_video, current_user: current_user}} = socket,
+        _rings
+      )
+      when not is_nil(selected_video) and not is_nil(current_user) do
+    with {id, ""} <- Integer.parse(annotation_id),
+         %Rumbl.Multimedia.Annotation{} = annotation <-
+           Multimedia.get_video_annotation(selected_video.id, id),
+         true <- annotation.user_id == current_user.id,
+         {:ok, _annotation} <- Multimedia.delete_annotation(annotation) do
+      {:noreply,
+       socket
+       |> assign_annotations()
+       |> Phoenix.LiveView.put_flash(:info, "Annotation removed")}
+    else
+      false ->
+        {:noreply,
+         Phoenix.LiveView.put_flash(socket, :error, "You can only delete your annotations.")}
+
+      _ ->
+        {:noreply, socket}
+    end
+  end
+
+  def dispatch_event("delete_annotation", _params, socket, _rings) do
+    {:noreply, socket}
+  end
+
   def dispatch_event("video_player_metrics", params, socket, _rings) do
     current_seconds =
       normalize_seconds(params["seconds"], socket.assigns[:player_time_seconds] || 0)

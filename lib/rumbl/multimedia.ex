@@ -213,6 +213,16 @@ defmodule Rumbl.Multimedia do
   end
 
   @doc """
+  Gets an annotation by id scoped to a video.
+  """
+  def get_video_annotation(video_id, annotation_id)
+      when is_integer(video_id) and is_integer(annotation_id) do
+    Annotation
+    |> where([a], a.video_id == ^video_id and a.id == ^annotation_id)
+    |> Repo.one()
+  end
+
+  @doc """
   Deletes an annotation.
   """
   def delete_annotation(%Annotation{} = annotation) do

@@ -102,6 +102,39 @@ defmodule RumblWeb.RingLive.IndexTest do
     assert has_element?(view, "#annotation-#{annotation_c.id}")
   end
 
+  test "deletes own annotation from ring workspace", %{conn: conn} do
+    user = user_fixture()
+    ring = ring_fixture(user)
+    video = video_fixture(user, ring)
+    annotation = annotation_fixture(user, video)
+    conn = log_in_user(conn, user)
+
+    {:ok, view, _html} = live(conn, ~p"/rings/#{ring.id}")
+
+    assert has_element?(view, "#annotation-#{annotation.id}")
+    assert has_element?(view, "#annotation-delete-#{annotation.id}")
+
+    view
+    |> element("#annotation-delete-#{annotation.id}")
+    |> render_click()
+
+    refute has_element?(view, "#annotation-#{annotation.id}")
+  end
+
+  test "hides annotation delete control for annotations owned by others", %{conn: conn} do
+    user = user_fixture()
+    other_user = user_fixture()
+    ring = ring_fixture(user)
+    video = video_fixture(user, ring)
+    annotation = annotation_fixture(other_user, video)
+    conn = log_in_user(conn, user)
+
+    {:ok, view, _html} = live(conn, ~p"/rings/#{ring.id}")
+
+    assert has_element?(view, "#annotation-#{annotation.id}")
+    refute has_element?(view, "#annotation-delete-#{annotation.id}")
+  end
+
   test "searches for a specific annotation from active now", %{conn: conn} do
     user = user_fixture()
     ring = ring_fixture(user)
