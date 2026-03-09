@@ -155,15 +155,9 @@ defmodule RumblWeb.RingLive.Index.RingPresence do
   defp online_member_ids(topic) do
     Presence.list(topic)
     |> Enum.reduce(MapSet.new(), fn {key, _details}, acc ->
-      case key do
-        "user:" <> id ->
-          case Integer.parse(id) do
-            {user_id, ""} -> MapSet.put(acc, user_id)
-            _ -> acc
-          end
-
-        _ ->
-          acc
+      case parse_presence_key(key) do
+        {:ok, user_id} -> MapSet.put(acc, user_id)
+        :error -> acc
       end
     end)
   end

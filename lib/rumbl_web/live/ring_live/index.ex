@@ -1,8 +1,15 @@
 defmodule RumblWeb.RingLive.Index do
   use RumblWeb, :live_view
 
-  alias Rumbl.Multimedia
-  alias RumblWeb.RingLive.Index.{CategoryManagement, Invitations, RingManagement, RingPresence}
+  alias RumblWeb.RingLive.Index.{
+    AnnotationSearch,
+    CategoryManagement,
+    Invitations,
+    PanelSearch,
+    RingManagement,
+    RingPresence
+  }
+
   alias RumblWeb.VideoLive.Index, as: VideoState
   import RumblWeb.RingLive.Components.MainContent
   import RumblWeb.RingLive.Components.Modals
@@ -124,22 +131,15 @@ defmodule RumblWeb.RingLive.Index do
   end
 
   def handle_event("open_panel_search_modal", _params, socket) do
-    {:noreply, assign(socket, :panel_search_modal_open, true)}
+    {:noreply, PanelSearch.open_modal(socket)}
   end
 
   def handle_event("close_panel_search_modal", _params, socket) do
-    {:noreply, assign(socket, :panel_search_modal_open, false)}
+    {:noreply, PanelSearch.close_modal(socket)}
   end
 
   def handle_event("open_annotation_search_modal", _params, socket) do
-    annotation_entries = ring_annotation_entries(socket)
-
-    {:noreply,
-     socket
-     |> assign(:annotation_search_modal_open, true)
-     |> assign(:annotation_search_query, "")
-     |> assign(:annotation_search_form, to_form(%{"query" => ""}, as: :annotation_search))
-     |> assign(:annotation_search_results, annotation_entries)}
+    {:noreply, AnnotationSearch.open_modal(socket)}
   end
 
   def handle_event("close_annotation_search_modal", _params, socket) do
@@ -219,38 +219,18 @@ defmodule RumblWeb.RingLive.Index do
   end
 
   def handle_event(event, params, socket) when event in @video_passthrough_events do
-    case VideoState.dispatch_event(event, params, socket, socket.assigns.rings) do
-      {:noreply, updated_socket} ->
-        {:noreply, CategoryManagement.refresh_category_assigns(updated_socket)}
+    {:noreply, updated_socket} =
+      VideoState.dispatch_event(event, params, socket, socket.assigns.rings)
 
-      other ->
-        other
-    end
+    {:noreply, CategoryManagement.refresh_category_assigns(updated_socket)}
   end
 
   def handle_event("open_video_from_search", %{"video_slug" => video_slug}, socket) do
-    case VideoState.dispatch_event(
-           "open_video",
-           %{"video_slug" => video_slug},
-           socket,
-           socket.assigns.rings
-         ) do
-      {:noreply, updated_socket} ->
-        {:noreply, assign(updated_socket, :panel_search_modal_open, false)}
-
-      other ->
-        other
-    end
+    {:noreply, PanelSearch.open_video_result(socket, video_slug, socket.assigns.rings)}
   end
 
   def handle_event("search_panel_catalog", %{"panel_search" => %{"query" => query}}, socket) do
-    trimmed_query = String.trim(query)
-
-    {:noreply,
-     socket
-     |> assign(:panel_search_query, trimmed_query)
-     |> assign(:panel_search_form, to_form(%{"query" => trimmed_query}, as: :panel_search))
-     |> assign(:panel_search_global_videos, search_global_catalog_videos(socket, trimmed_query))}
+    {:noreply, PanelSearch.search(socket, query)}
   end
 
   def handle_event(
@@ -258,49 +238,11 @@ defmodule RumblWeb.RingLive.Index do
         %{"annotation_search" => %{"query" => query}},
         socket
       ) do
-    trimmed_query = String.trim(query)
-    annotation_entries = ring_annotation_entries(socket)
-
-    {:noreply,
-     socket
-     |> assign(:annotation_search_query, trimmed_query)
-     |> assign(
-       :annotation_search_form,
-       to_form(%{"query" => trimmed_query}, as: :annotation_search)
-     )
-     |> assign(:annotation_search_results, filter_annotations(annotation_entries, trimmed_query))}
+    {:noreply, AnnotationSearch.search(socket, query)}
   end
 
   def handle_event("select_annotation_from_search", %{"annotation_id" => annotation_id}, socket) do
-    annotation_entry =
-      find_annotation_by_id(socket.assigns[:annotation_search_results] || [], annotation_id)
-
-    if annotation_entry do
-      case VideoState.dispatch_event(
-             "open_video",
-             %{"video_slug" => annotation_entry.video_slug},
-             socket,
-             socket.assigns.rings
-           ) do
-        {:noreply, updated_socket} ->
-          selected_annotation =
-            find_annotation_by_id(updated_socket.assigns[:annotations] || [], annotation_id)
-
-          seconds = div(annotation_entry.at, 1000)
-
-          {:noreply,
-           updated_socket
-           |> assign(:annotation_search_modal_open, false)
-           |> assign(:selected_annotation, selected_annotation)
-           |> assign(:player_time_seconds, seconds)
-           |> Phoenix.LiveView.push_event("seek_video", %{seconds: seconds})}
-
-        other ->
-          other
-      end
-    else
-      {:noreply, socket}
-    end
+    {:noreply, AnnotationSearch.select_result(socket, annotation_id, socket.assigns.rings)}
   end
 
   def handle_event("show_invite_code", _params, socket) do
@@ -355,16 +297,13 @@ defmodule RumblWeb.RingLive.Index do
   end
 
   def handle_event(event, params, socket) when event in @video_events do
-    case VideoState.dispatch_event(event, params, socket, socket.assigns.rings) do
-      {:noreply, updated_socket} ->
-        {:noreply,
-         updated_socket
-         |> CategoryManagement.refresh_category_assigns()
-         |> maybe_sync_presence(event)}
+    {:noreply, updated_socket} =
+      VideoState.dispatch_event(event, params, socket, socket.assigns.rings)
 
-      other ->
-        other
-    end
+    {:noreply,
+     updated_socket
+     |> CategoryManagement.refresh_category_assigns()
+     |> maybe_sync_presence(event)}
   end
 
   defp apply_home_live_action(socket, :rings, _params) do
@@ -385,58 +324,6 @@ defmodule RumblWeb.RingLive.Index do
   end
 
   defp apply_home_live_action(socket, _live_action, _params), do: socket
-
-  defp search_global_catalog_videos(socket, query) do
-    if socket.assigns.selected_ring do
-      []
-    else
-      ring_ids = Enum.map(socket.assigns.rings, & &1.id)
-      Multimedia.search_videos_for_rings(ring_ids, query)
-    end
-  end
-
-  defp filter_annotations(annotations, ""), do: annotations
-
-  defp filter_annotations(annotations, query) do
-    normalized_query = String.downcase(query)
-
-    Enum.filter(annotations, fn annotation ->
-      String.contains?(String.downcase(annotation.body || ""), normalized_query) or
-        String.contains?(String.downcase(annotation.author || ""), normalized_query) or
-        String.contains?(String.downcase(annotation.video_title || ""), normalized_query) or
-        String.contains?(String.downcase(annotation.category_name || ""), normalized_query) or
-        String.contains?(
-          String.downcase(RumblWeb.VideoLive.Watch.format_time(annotation.at)),
-          normalized_query
-        )
-    end)
-  end
-
-  defp ring_annotation_entries(socket) do
-    socket.assigns.ring_videos
-    |> Enum.flat_map(fn video ->
-      video_annotations = RumblWeb.VideoLive.Watch.annotations_for_video(video)
-
-      Enum.map(video_annotations, fn annotation ->
-        annotation
-        |> Map.put(:video_slug, video.slug)
-        |> Map.put(:video_title, video.title)
-        |> Map.put(
-          :category_name,
-          if(video.category, do: video.category.name, else: "Uncategorized")
-        )
-      end)
-    end)
-    |> Enum.sort_by(& &1.at)
-  end
-
-  defp find_annotation_by_id(annotations, annotation_id) do
-    with {id, ""} <- Integer.parse(annotation_id) do
-      Enum.find(annotations, &(&1.id == id))
-    else
-      _ -> nil
-    end
-  end
 
   defp sync_presence_state(socket) do
     socket

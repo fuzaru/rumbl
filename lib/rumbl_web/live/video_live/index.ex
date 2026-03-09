@@ -68,8 +68,6 @@ defmodule RumblWeb.VideoLive.Index do
     |> Phoenix.Component.assign(:annotations, [])
     |> Phoenix.Component.assign(:selected_annotation, nil)
     |> Phoenix.Component.assign(:annotation_timestamp_filter, nil)
-    |> Phoenix.Component.assign(:player_time_seconds, 0)
-    |> Phoenix.Component.assign(:player_duration_seconds, 0)
     |> Watch.reset_annotation_form()
   end
 
@@ -156,12 +154,7 @@ defmodule RumblWeb.VideoLive.Index do
     at = Map.get(annotation_params, "at", "")
     body = Map.get(annotation_params, "body", "")
 
-    {:noreply,
-     Phoenix.Component.assign(
-       socket,
-       :annotation_form,
-       Phoenix.Component.to_form(%{"at" => at, "body" => body}, as: :annotation)
-     )}
+    {:noreply, Watch.set_annotation_form(socket, at, body)}
   end
 
   def dispatch_event("preview_annotation", %{"annotation_id" => annotation_id}, socket, _rings) do
@@ -185,10 +178,8 @@ defmodule RumblWeb.VideoLive.Index do
         socket,
         _rings
       ) do
-    case Integer.parse(at) do
-      {milliseconds, ""} when milliseconds >= 0 ->
-        seconds = div(milliseconds, 1000)
-
+    case parse_seek_seconds(at) do
+      {:ok, milliseconds, seconds} ->
         {:noreply,
          socket
          |> Phoenix.Component.assign(:annotation_timestamp_filter, milliseconds)
@@ -256,9 +247,9 @@ defmodule RumblWeb.VideoLive.Index do
       )
       when not is_nil(selected_video) do
     seconds =
-      case Integer.parse(at) do
-        {milliseconds, ""} when milliseconds >= 0 -> div(milliseconds, 1000)
-        _ -> 0
+      case parse_seek_seconds(at) do
+        {:ok, _milliseconds, parsed_seconds} -> parsed_seconds
+        :error -> 0
       end
 
     {:noreply,
@@ -410,4 +401,11 @@ defmodule RumblWeb.VideoLive.Index do
   end
 
   defp normalize_seconds(_value, fallback), do: fallback
+
+  defp parse_seek_seconds(at) do
+    case Integer.parse(at) do
+      {milliseconds, ""} when milliseconds >= 0 -> {:ok, milliseconds, div(milliseconds, 1000)}
+      _ -> :error
+    end
+  end
 end

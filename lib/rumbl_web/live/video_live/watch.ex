@@ -27,7 +27,11 @@ defmodule RumblWeb.VideoLive.Watch do
   end
 
   def reset_annotation_form(socket) do
-    put_annotation_form(socket, "", "")
+    set_annotation_form(socket, "", "")
+  end
+
+  def set_annotation_form(socket, at, body) do
+    put_annotation_form(socket, at, body)
   end
 
   def add_annotation(socket, at, body) do

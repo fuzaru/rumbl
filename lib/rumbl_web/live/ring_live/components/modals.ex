@@ -99,7 +99,7 @@ defmodule RumblWeb.RingLive.Components.Modals do
                     {RumblWeb.VideoLive.Watch.format_time(annotation.at)} • {annotation.author}
                   </p>
                   <p class="truncate font-semibold" title={annotation.body}>
-                    {short_annotation_preview(annotation.body)}
+                    {H.short_annotation_preview(annotation.body, 90)}
                   </p>
                 </div>
                 <.icon name="hero-arrow-right" class="size-4 shrink-0 text-base-content/60" />
@@ -520,20 +520,4 @@ defmodule RumblWeb.RingLive.Components.Modals do
     <% end %>
     """
   end
-
-  defp short_annotation_preview(text) when is_binary(text) do
-    text
-    |> String.trim()
-    |> String.replace(~r/\s+/, " ")
-    |> String.slice(0, 90)
-    |> then(fn preview ->
-      if String.length(text) > 90 do
-        preview <> "…"
-      else
-        preview
-      end
-    end)
-  end
-
-  defp short_annotation_preview(_text), do: ""
 end

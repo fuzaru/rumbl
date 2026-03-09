@@ -44,5 +44,24 @@ defmodule RumblWeb.RingLive.Components.Helpers do
     end
   end
 
+  def short_annotation_preview(text, max_length \\ 80)
+
+  def short_annotation_preview(text, max_length)
+      when is_binary(text) and is_integer(max_length) and max_length > 0 do
+    text
+    |> String.trim()
+    |> String.replace(~r/\s+/, " ")
+    |> String.slice(0, max_length)
+    |> then(fn preview ->
+      if String.length(text) > max_length do
+        preview <> "…"
+      else
+        preview
+      end
+    end)
+  end
+
+  def short_annotation_preview(_text, _max_length), do: ""
+
   defp category_sort_key(%{category: category_name}), do: {0, String.downcase(category_name)}
 end

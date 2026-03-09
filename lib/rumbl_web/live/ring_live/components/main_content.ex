@@ -549,7 +549,7 @@ defmodule RumblWeb.RingLive.Components.MainContent do
   end
 
   defp timeline_marker_tooltip(at, [annotation]) do
-    "#{RumblWeb.VideoLive.Watch.format_time(at)} - #{short_annotation_preview(annotation.body)}"
+    "#{RumblWeb.VideoLive.Watch.format_time(at)} - #{H.short_annotation_preview(annotation.body)}"
   end
 
   defp timeline_marker_tooltip(at, annotations_at_time) do
@@ -563,20 +563,4 @@ defmodule RumblWeb.RingLive.Components.MainContent do
   end
 
   defp filtered_annotations(annotations, _at_ms), do: annotations
-
-  defp short_annotation_preview(text) when is_binary(text) do
-    text
-    |> String.trim()
-    |> String.replace(~r/\s+/, " ")
-    |> String.slice(0, 80)
-    |> then(fn preview ->
-      if String.length(text) > 80 do
-        preview <> "…"
-      else
-        preview
-      end
-    end)
-  end
-
-  defp short_annotation_preview(_text), do: ""
 end

@@ -64,34 +64,23 @@ defmodule RumblWeb.VideoLive.Modal do
   end
 
   def save_modal(socket, video_params) do
-    case socket.assigns.video_modal_mode do
-      :new ->
-        case Multimedia.create_video(socket.assigns.current_user, video_params) do
-          {:ok, video} ->
-            {:ok, video.slug}
+    result =
+      case socket.assigns.video_modal_mode do
+        :new -> Multimedia.create_video(socket.assigns.current_user, video_params)
+        :edit -> Multimedia.update_video(socket.assigns.video_modal_video, video_params)
+      end
 
-          {:error, %Ecto.Changeset{} = changeset} ->
-            {:error,
-             Phoenix.Component.assign(
-               socket,
-               :video_modal_form,
-               Phoenix.Component.to_form(changeset)
-             )}
-        end
+    case result do
+      {:ok, video} ->
+        {:ok, video.slug}
 
-      :edit ->
-        case Multimedia.update_video(socket.assigns.video_modal_video, video_params) do
-          {:ok, video} ->
-            {:ok, video.slug}
-
-          {:error, %Ecto.Changeset{} = changeset} ->
-            {:error,
-             Phoenix.Component.assign(
-               socket,
-               :video_modal_form,
-               Phoenix.Component.to_form(changeset)
-             )}
-        end
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:error,
+         Phoenix.Component.assign(
+           socket,
+           :video_modal_form,
+           Phoenix.Component.to_form(changeset)
+         )}
     end
   end
 

@@ -23,8 +23,7 @@ defmodule RumblWeb.VideoLive.Show do
     |> Phoenix.Component.assign(:selected_ring, nil)
     |> Phoenix.Component.assign(:ring_videos, [])
     |> Phoenix.Component.assign(:selected_video, nil)
-    |> Phoenix.Component.assign(:player_time_seconds, 0)
-    |> Phoenix.Component.assign(:player_duration_seconds, 0)
+    |> reset_player_metrics()
   end
 
   def show_videos_panel(socket) do
@@ -47,8 +46,7 @@ defmodule RumblWeb.VideoLive.Show do
     |> Phoenix.Component.assign(:selected_ring, ring)
     |> Phoenix.Component.assign(:ring_videos, videos)
     |> Phoenix.Component.assign(:selected_video, selected_video)
-    |> Phoenix.Component.assign(:player_time_seconds, 0)
-    |> Phoenix.Component.assign(:player_duration_seconds, 0)
+    |> reset_player_metrics()
   end
 
   def select_video(socket, slug) do
@@ -57,8 +55,7 @@ defmodule RumblWeb.VideoLive.Show do
       :selected_video,
       Enum.find(socket.assigns.ring_videos, &(&1.slug == slug))
     )
-    |> Phoenix.Component.assign(:player_time_seconds, 0)
-    |> Phoenix.Component.assign(:player_duration_seconds, 0)
+    |> reset_player_metrics()
   end
 
   def refresh_video_lists(socket, preferred_slug \\ nil) do
@@ -74,11 +71,16 @@ defmodule RumblWeb.VideoLive.Show do
       socket
       |> Phoenix.Component.assign(:ring_videos, videos)
       |> Phoenix.Component.assign(:selected_video, selected_video)
-      |> Phoenix.Component.assign(:player_time_seconds, 0)
-      |> Phoenix.Component.assign(:player_duration_seconds, 0)
+      |> reset_player_metrics()
     else
       socket
     end
+  end
+
+  defp reset_player_metrics(socket) do
+    socket
+    |> Phoenix.Component.assign(:player_time_seconds, 0)
+    |> Phoenix.Component.assign(:player_duration_seconds, 0)
   end
 
   defp select_preferred_video(videos, current_video, preferred_slug) do

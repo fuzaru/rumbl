@@ -18,14 +18,8 @@ defmodule RumblWeb.RingLive.Components.Presence do
       <h2 class="rumbl-active-now-title">Active Now</h2>
 
       <%= if @selected_ring do %>
-        <% online_members =
-          Enum.filter(@ring_members, fn member ->
-            MapSet.member?(@online_member_ids, member.id)
-          end) %>
-        <% offline_members =
-          Enum.reject(@ring_members, fn member ->
-            MapSet.member?(@online_member_ids, member.id)
-          end) %>
+        <% online_members = online_members(@ring_members, @online_member_ids) %>
+        <% offline_members = offline_members(@ring_members, @online_member_ids) %>
 
         <section id="presence-online-ring" class="rumbl-presence-section">
           <h3 class="rumbl-presence-heading">Online — {length(online_members)}</h3>
@@ -34,7 +28,7 @@ defmodule RumblWeb.RingLive.Components.Presence do
               <div id={"presence-online-#{member.id}"} class="rumbl-presence-row">
                 <div class="rumbl-presence-avatar-wrap">
                   <div class="rumbl-presence-avatar">
-                    {String.first(member.name || member.username || "U")}
+                    {member_initial(member)}
                   </div>
                   <span class="rumbl-presence-dot is-online"></span>
                 </div>
@@ -55,7 +49,7 @@ defmodule RumblWeb.RingLive.Components.Presence do
               <div id={"presence-offline-#{member.id}"} class="rumbl-presence-row is-offline">
                 <div class="rumbl-presence-avatar-wrap">
                   <div class="rumbl-presence-avatar">
-                    {String.first(member.name || member.username || "U")}
+                    {member_initial(member)}
                   </div>
                   <span class="rumbl-presence-dot"></span>
                 </div>
@@ -68,15 +62,7 @@ defmodule RumblWeb.RingLive.Components.Presence do
           </div>
         </section>
       <% else %>
-        <% active_entries =
-          @active_ring_users
-          |> Enum.map(fn user ->
-            %{
-              id: user.id,
-              name: user.name,
-              subtitle: Enum.join(user.rings, ", ")
-            }
-          end) %>
+        <% active_entries = active_entries(@active_ring_users) %>
 
         <div class="rumbl-active-now-meta">
           <p class="text-xs font-medium uppercase tracking-wide text-[#8e9ab7]">
@@ -101,7 +87,7 @@ defmodule RumblWeb.RingLive.Components.Presence do
               >
                 <div class="rumbl-presence-avatar-wrap">
                   <div class="rumbl-presence-avatar">
-                    {String.first(entry.name || "U")}
+                    {initial(entry.name)}
                   </div>
                   <span class="rumbl-presence-dot is-online"></span>
                 </div>
@@ -118,4 +104,25 @@ defmodule RumblWeb.RingLive.Components.Presence do
     </aside>
     """
   end
+
+  defp online_members(ring_members, online_member_ids) do
+    Enum.filter(ring_members, &MapSet.member?(online_member_ids, &1.id))
+  end
+
+  defp offline_members(ring_members, online_member_ids) do
+    Enum.reject(ring_members, &MapSet.member?(online_member_ids, &1.id))
+  end
+
+  defp active_entries(active_ring_users) do
+    Enum.map(active_ring_users, fn user ->
+      %{id: user.id, name: user.name, subtitle: Enum.join(user.rings, ", ")}
+    end)
+  end
+
+  defp member_initial(member) do
+    initial(member.name || member.username)
+  end
+
+  defp initial(name) when is_binary(name) and name != "", do: String.first(name)
+  defp initial(_name), do: "U"
 end

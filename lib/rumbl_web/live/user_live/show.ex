@@ -14,7 +14,7 @@ defmodule RumblWeb.UserLive.Show do
        socket
        |> assign(:page_title, profile_user.name)
        |> assign(:user, profile_user)
-       |> assign(:is_self, current_user && current_user.id == profile_user.id)
+       |> assign(:is_self, current_user.id == profile_user.id)
        |> assign_profile_edit_state(profile_user)}
     else
       {:ok,

@@ -13,11 +13,7 @@ defmodule RumblWeb.UserLiveAuth do
     locale = Locale.from_session(session)
     Gettext.put_locale(RumblWeb.Gettext, locale)
 
-    socket =
-      socket
-      |> assign_new(:locale, fn -> locale end)
-      |> assign_new(:current_scope, fn -> nil end)
-      |> assign_new(:current_user, fn -> get_user_from_session(session) end)
+    socket = assign_session_context(socket, session, locale)
 
     {:cont, socket}
   end
@@ -26,11 +22,7 @@ defmodule RumblWeb.UserLiveAuth do
     locale = Locale.from_session(session)
     Gettext.put_locale(RumblWeb.Gettext, locale)
 
-    socket =
-      socket
-      |> assign_new(:locale, fn -> locale end)
-      |> assign_new(:current_scope, fn -> nil end)
-      |> assign_new(:current_user, fn -> get_user_from_session(session) end)
+    socket = assign_session_context(socket, session, locale)
 
     if socket.assigns.current_user do
       {:cont, socket}
@@ -44,4 +36,11 @@ defmodule RumblWeb.UserLiveAuth do
 
   defp get_user_from_session(%{"user_id" => user_id}), do: Accounts.get_user(user_id)
   defp get_user_from_session(_session), do: nil
+
+  defp assign_session_context(socket, session, locale) do
+    socket
+    |> assign_new(:locale, fn -> locale end)
+    |> assign_new(:current_scope, fn -> nil end)
+    |> assign_new(:current_user, fn -> get_user_from_session(session) end)
+  end
 end
