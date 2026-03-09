@@ -106,6 +106,19 @@ defmodule Rumbl.Rings do
     |> Repo.all()
   end
 
+  def delete_owned_ring(%User{id: user_id}, ring_id) when is_binary(ring_id) do
+    case Repo.get(Ring, ring_id) do
+      nil ->
+        {:error, :not_found}
+
+      %Ring{owner_id: ^user_id} = ring ->
+        Repo.delete(ring)
+
+      %Ring{} ->
+        {:error, :forbidden}
+    end
+  end
+
   def list_pending_invites_for_ring(ring_id) when is_binary(ring_id) do
     from(inv in RingInvitation,
       where: inv.ring_id == ^ring_id and inv.status == "pending"

@@ -119,6 +119,49 @@ defmodule RumblWeb.RingLive.Index.RingManagement do
     end
   end
 
+  def delete_selected_ring(socket) do
+    ring = socket.assigns.selected_ring
+    current_user = socket.assigns.current_user
+
+    cond do
+      is_nil(ring) ->
+        {:noreply, Phoenix.LiveView.put_flash(socket, :error, "No ring is selected.")}
+
+      is_nil(current_user) or ring.owner_id != current_user.id ->
+        {:noreply,
+         Phoenix.LiveView.put_flash(socket, :error, "Only the ring owner can delete this ring.")}
+
+      true ->
+        case Rings.delete_owned_ring(current_user, ring.id) do
+          {:ok, _deleted_ring} ->
+            {:noreply,
+             socket
+             |> refresh_user_rings_and_video_state()
+             |> Phoenix.LiveView.put_flash(:info, "Ring deleted.")
+             |> Phoenix.LiveView.push_navigate(to: "/rings")}
+
+          {:error, :not_found} ->
+            {:noreply, Phoenix.LiveView.put_flash(socket, :error, "That ring no longer exists.")}
+
+          {:error, :forbidden} ->
+            {:noreply,
+             Phoenix.LiveView.put_flash(
+               socket,
+               :error,
+               "Only the ring owner can delete this ring."
+             )}
+
+          {:error, _reason} ->
+            {:noreply,
+             Phoenix.LiveView.put_flash(
+               socket,
+               :error,
+               "Could not delete ring. Please try again."
+             )}
+        end
+    end
+  end
+
   defp ring_changeset(params) do
     types = %{name: :string}
 

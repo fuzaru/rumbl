@@ -19,5 +19,6 @@ defmodule RumblWeb.VideoLive.IndexTest do
     assert has_element?(view, "#my-videos-section")
     assert has_element?(view, "#videos-add-button")
     assert has_element?(view, "#videos-panel-my-videos")
+    assert has_element?(view, ".rumbl-main.is-active-now-collapsed")
   end
 end

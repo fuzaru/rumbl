@@ -29,10 +29,6 @@ defmodule RumblWeb.VideoLive.Show do
   def show_videos_panel(socket) do
     socket
     |> Phoenix.Component.assign(:active_panel, :videos)
-    |> Phoenix.Component.assign(
-      :my_videos,
-      Multimedia.list_user_videos(socket.assigns.current_user)
-    )
     |> clear_workspace()
   end
 
@@ -59,9 +55,6 @@ defmodule RumblWeb.VideoLive.Show do
   end
 
   def refresh_video_lists(socket, preferred_slug \\ nil) do
-    my_videos = Multimedia.list_user_videos(socket.assigns.current_user)
-    socket = Phoenix.Component.assign(socket, :my_videos, my_videos)
-
     if socket.assigns.selected_ring do
       videos = Multimedia.list_videos_for_ring(socket.assigns.selected_ring.id)
 

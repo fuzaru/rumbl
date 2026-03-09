@@ -8,13 +8,6 @@ defmodule Rumbl.Accounts do
   alias Rumbl.Accounts.User
 
   @doc """
-  Returns the list of users.
-  """
-  def list_users do
-    Repo.all(User)
-  end
-
-  @doc """
   Gets a single user.
   Returns nil if not found.
   """
@@ -87,14 +80,6 @@ defmodule Rumbl.Accounts do
     user
     |> User.changeset(attrs)
     |> Repo.update()
-  end
-
-  @spec delete_user(%User{}) :: {:ok, %User{}} | {:error, Ecto.Changeset.t()}
-  @doc """
-  Deletes a user.
-  """
-  def delete_user(%User{} = user) do
-    Repo.delete(user)
   end
 
   @doc """

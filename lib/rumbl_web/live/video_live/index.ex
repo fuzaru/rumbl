@@ -285,17 +285,6 @@ defmodule RumblWeb.VideoLive.Index do
     end
   end
 
-  def dispatch_event("delete_my_video", %{"video_slug" => video_slug}, socket, _rings) do
-    video = Multimedia.get_user_video!(socket.assigns.current_user, video_slug)
-    {:ok, _video} = Multimedia.delete_video(video)
-
-    {:noreply,
-     socket
-     |> Show.refresh_video_lists()
-     |> assign_annotations()
-     |> Phoenix.LiveView.put_flash(:info, "Video deleted successfully")}
-  end
-
   def dispatch_event("open_video_modal_new", params, socket, _rings) do
     ring_id =
       params["ring_id"] ||

@@ -75,6 +75,17 @@ defmodule RumblWeb.RingLive.Components.Shell do
                 >
                   <.icon name="hero-trash" class="size-4" /> Delete category
                 </button>
+                <%= if @selected_ring.owner_id == @current_user.id do %>
+                  <button
+                    id="ring-delete-trigger"
+                    type="button"
+                    phx-click="delete_selected_ring"
+                    data-confirm="Delete this ring for everyone? This action cannot be undone."
+                    class="rumbl-panel-menu-item"
+                  >
+                    <.icon name="hero-trash" class="size-4" /> Delete ring
+                  </button>
+                <% end %>
               </div>
             </details>
 

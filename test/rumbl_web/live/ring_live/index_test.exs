@@ -4,6 +4,8 @@ defmodule RumblWeb.RingLive.IndexTest do
   import Phoenix.LiveViewTest
   import Rumbl.TestFixtures
 
+  alias Rumbl.Rings
+
   test "redirects unauthenticated users to login", %{conn: conn} do
     assert {:error, {:redirect, %{to: "/sessions/new"}}} = live(conn, ~p"/rings")
   end
@@ -173,5 +175,34 @@ defmodule RumblWeb.RingLive.IndexTest do
 
     assert has_element?(view, "#invitation-requests-section")
     assert has_element?(view, "#invite-user-section")
+  end
+
+  test "owner can delete ring from workspace dropdown", %{conn: conn} do
+    user = user_fixture()
+    ring = ring_fixture(user)
+    conn = log_in_user(conn, user)
+
+    {:ok, view, _html} = live(conn, ~p"/rings/#{ring.id}")
+
+    assert has_element?(view, "#ring-delete-trigger")
+
+    view
+    |> element("#ring-delete-trigger")
+    |> render_click()
+
+    assert_redirect(view, ~p"/rings")
+    assert Rings.list_user_rings(user) == []
+  end
+
+  test "non-owner does not see ring delete action", %{conn: conn} do
+    owner = user_fixture()
+    member = user_fixture()
+    ring = ring_fixture(owner)
+    {:ok, _} = Rings.join_ring_by_invite(member, ring.invite_code)
+    conn = log_in_user(conn, member)
+
+    {:ok, view, _html} = live(conn, ~p"/rings/#{ring.id}")
+
+    refute has_element?(view, "#ring-delete-trigger")
   end
 end

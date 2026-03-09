@@ -58,17 +58,4 @@ defmodule RumblWeb.Auth do
       |> halt()
     end
   end
-
-  @doc """
-  Plug to redirect if already authenticated.
-  """
-  def redirect_if_authenticated(conn, _opts) do
-    if conn.assigns[:current_user] do
-      conn
-      |> redirect(to: "/")
-      |> halt()
-    else
-      conn
-    end
-  end
 end

@@ -218,6 +218,10 @@ defmodule RumblWeb.RingLive.Index do
     RingManagement.save_join_ring(socket, params)
   end
 
+  def handle_event("delete_selected_ring", _params, socket) do
+    RingManagement.delete_selected_ring(socket)
+  end
+
   def handle_event(event, params, socket) when event in @video_passthrough_events do
     {:noreply, updated_socket} =
       VideoState.dispatch_event(event, params, socket, socket.assigns.rings)
