@@ -31,12 +31,12 @@ defmodule Rumbl.Accounts.User do
     |> cast(attrs, [:password])
     |> validate_required([:password])
     |> validate_length(:password, min: 6, max: 100)
-    |> then(fn
-      %{valid?: true, changes: %{password: pw}} = cs ->
-        put_change(cs, :password_hash, Bcrypt.hash_pwd_salt(pw))
-
-      cs ->
-        cs
-    end)
+    |> put_password_hash()
   end
+
+  defp put_password_hash(%Ecto.Changeset{valid?: true, changes: %{password: password}} = cs) do
+    put_change(cs, :password_hash, Bcrypt.hash_pwd_salt(password))
+  end
+
+  defp put_password_hash(cs), do: cs
 end
