@@ -16,3 +16,39 @@ msgstr "Filipino"
 
 msgid "Language updated"
 msgstr "Language updated"
+
+msgid "Let's get ready to Rumbl!"
+msgstr "Let's get ready to Rumbl!"
+
+msgid "Watch videos together and share your thoughts in real-time."
+msgstr "Watch videos together and share your thoughts in real-time."
+
+msgid "Add annotations to videos and see what others think!"
+msgstr "Add annotations to videos and see what others think!"
+
+msgid "Open Rings"
+msgstr "Open Rings"
+
+msgid "Get Started"
+msgstr "Get Started"
+
+msgid "Log In"
+msgstr "Log In"
+
+msgid "Share Videos"
+msgstr "Share Videos"
+
+msgid "Add YouTube videos and share them with the community."
+msgstr "Add YouTube videos and share them with the community."
+
+msgid "Real-time Annotations"
+msgstr "Real-time Annotations"
+
+msgid "Add comments at specific moments while watching videos."
+msgstr "Add comments at specific moments while watching videos."
+
+msgid "Watch Together"
+msgstr "Watch Together"
+
+msgid "See annotations from other users in real-time."
+msgstr "See annotations from other users in real-time."
