@@ -155,23 +155,24 @@ defmodule RumblWeb.Layouts do
     <div class="flex items-center gap-2 rounded-full border border-base-300 bg-base-200/60 px-2 py-1 text-sm">
       <.link
         href={~p"/locale/en"}
-        class={[
-          "btn btn-xs rounded-full",
-          if(@current_locale == "en", do: "btn-primary", else: "btn-ghost")
-        ]}
+        class={locale_button_class(@current_locale, "en")}
       >
         {gettext("English")}
       </.link>
       <.link
         href={~p"/locale/fil"}
-        class={[
-          "btn btn-xs rounded-full",
-          if(@current_locale == "fil", do: "btn-primary", else: "btn-ghost")
-        ]}
+        class={locale_button_class(@current_locale, "fil")}
       >
         {gettext("Filipino")}
       </.link>
     </div>
     """
+  end
+
+  defp locale_button_class(current_locale, locale) do
+    [
+      "btn btn-xs rounded-full",
+      if(current_locale == locale, do: "btn-primary", else: "btn-ghost")
+    ]
   end
 end

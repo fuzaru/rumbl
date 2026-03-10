@@ -93,12 +93,12 @@ defmodule RumblWeb.CoreComponents do
   attr :variant, :string, values: ~w(primary)
   slot :inner_block, required: true
 
-  def button(%{rest: rest} = assigns) do
-    variants = %{"primary" => "btn-primary", nil => "btn-primary btn-soft"}
+  @button_variants %{"primary" => "btn-primary", nil => "btn-primary btn-soft"}
 
+  def button(%{rest: rest} = assigns) do
     assigns =
       assign_new(assigns, :class, fn ->
-        ["btn", Map.fetch!(variants, assigns[:variant])]
+        ["btn", Map.fetch!(@button_variants, assigns[:variant])]
       end)
 
     if rest[:href] || rest[:navigate] || rest[:patch] do
@@ -595,10 +595,9 @@ defmodule RumblWeb.CoreComponents do
     # dynamically, so we need to translate them by calling Gettext
     # with our gettext backend as first argument. Translations are
     # available in the errors.po file (as we use the "errors" domain).
-    if count = opts[:count] do
-      Gettext.dngettext(RumblWeb.Gettext, "errors", msg, msg, count, opts)
-    else
-      Gettext.dgettext(RumblWeb.Gettext, "errors", msg, opts)
+    case opts[:count] do
+      nil -> Gettext.dgettext(RumblWeb.Gettext, "errors", msg, opts)
+      count -> Gettext.dngettext(RumblWeb.Gettext, "errors", msg, msg, count, opts)
     end
   end
 
