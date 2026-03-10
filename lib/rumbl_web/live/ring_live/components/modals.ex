@@ -194,7 +194,8 @@ defmodule RumblWeb.RingLive.Components.Modals do
 
           <div class="mt-3 space-y-2">
             <%= if @selected_ring do %>
-              <%= for video <- H.filter_ring_videos(@ring_videos, @panel_search_query) do %>
+              <% filtered_videos = H.filter_ring_videos(@ring_videos, @panel_search_query) %>
+              <%= for video <- filtered_videos do %>
                 <button
                   id={"panel-search-video-#{video.slug}"}
                   type="button"
@@ -212,11 +213,12 @@ defmodule RumblWeb.RingLive.Components.Modals do
                 </button>
               <% end %>
 
-              <%= if @panel_search_query != "" and H.filter_ring_videos(@ring_videos, @panel_search_query) == [] do %>
+              <%= if @panel_search_query != "" and filtered_videos == [] do %>
                 <p class="text-xs text-base-content/60">No matches found.</p>
               <% end %>
             <% else %>
-              <%= for ring <- H.filter_rings(@rings, @panel_search_query) do %>
+              <% filtered_rings = H.filter_rings(@rings, @panel_search_query) %>
+              <%= for ring <- filtered_rings do %>
                 <.link
                   id={"panel-search-ring-#{ring.id}"}
                   navigate={~p"/rings/#{ring.id}"}
@@ -249,7 +251,7 @@ defmodule RumblWeb.RingLive.Components.Modals do
                 </.link>
               <% end %>
 
-              <%= if @panel_search_query != "" and H.filter_rings(@rings, @panel_search_query) == [] and @panel_search_global_videos == [] do %>
+              <%= if @panel_search_query != "" and filtered_rings == [] and @panel_search_global_videos == [] do %>
                 <p class="text-xs text-base-content/60">No matches found.</p>
               <% end %>
             <% end %>

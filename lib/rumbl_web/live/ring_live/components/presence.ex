@@ -119,9 +119,7 @@ defmodule RumblWeb.RingLive.Components.Presence do
     end)
   end
 
-  defp member_initial(member) do
-    initial(member.name || member.username)
-  end
+  defp member_initial(m), do: initial(m.name || m.username)
 
   defp initial(name) when is_binary(name) and name != "", do: String.first(name)
   defp initial(_name), do: "U"

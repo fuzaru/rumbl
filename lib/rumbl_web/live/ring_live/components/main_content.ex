@@ -499,51 +499,30 @@ defmodule RumblWeb.RingLive.Components.MainContent do
     "https://www.youtube.com/embed/#{Rumbl.Multimedia.Video.youtube_id(video)}?enablejsapi=1&playsinline=1"
   end
 
-  defp timeline_max_ms(_annotations, player_time_seconds, player_duration_seconds) do
-    if is_integer(player_duration_seconds) and player_duration_seconds > 0 do
-      player_duration_seconds * 1000
-    else
-      max(player_time_seconds * 1000, 1000)
-    end
-  end
+  defp timeline_max_ms(_, _, d) when is_integer(d) and d > 0, do: d * 1000
+  defp timeline_max_ms(_, t, _), do: max(t * 1000, 1000)
 
   defp timeline_marker_left(at_ms, max_ms) when is_integer(at_ms) and max_ms > 0 do
-    position =
-      at_ms
-      |> max(0)
-      |> min(max_ms)
-      |> Kernel./(max_ms)
-      |> Kernel.*(100)
-
-    :erlang.float_to_binary(position, decimals: 2) <> "%"
+    :erlang.float_to_binary(min(max(at_ms, 0), max_ms) / max_ms * 100, decimals: 2) <> "%"
   end
 
-  defp author_initial(author) when is_binary(author) and author != "" do
-    author
-    |> String.trim()
-    |> String.first()
-    |> String.upcase()
-  end
+  defp author_initial(a) when is_binary(a) and a != "",
+    do: a |> String.trim() |> String.first() |> String.upcase()
 
-  defp author_initial(_author), do: "U"
+  defp author_initial(_), do: "U"
 
   defp grouped_timeline_markers(annotations) do
     annotations
     |> Enum.group_by(& &1.at)
-    |> Enum.sort_by(fn {at, _annotations_at_time} -> at end)
-    |> Enum.map(fn {at, annotations_at_time} ->
-      first_annotation = List.first(annotations_at_time)
-      count = length(annotations_at_time)
+    |> Enum.sort_by(fn {at, _} -> at end)
+    |> Enum.map(fn {at, [first | _] = at_anns} ->
+      count = length(at_anns)
 
       %{
         at: at,
         count: count,
-        label:
-          if(count > 1,
-            do: Integer.to_string(count),
-            else: author_initial(first_annotation.author)
-          ),
-        tooltip: timeline_marker_tooltip(at, annotations_at_time)
+        label: if(count > 1, do: Integer.to_string(count), else: author_initial(first.author)),
+        tooltip: timeline_marker_tooltip(at, at_anns)
       }
     end)
   end
