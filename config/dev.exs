@@ -25,8 +25,8 @@ config :rumbl, RumblWeb.Endpoint,
   debug_errors: true,
   secret_key_base: "J4sUrIGnhhI6yzl6GWu1e7jhe3bKoNA1p1fKuGpmUT0J2mQcgz6atA+xrDmRbTaO",
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:rumbl, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:rumbl, ~w(--watch)]}
+    esbuild: {Esbuild, :install_and_run, [:rumbl, ~w(--sourcemap=inline)]},
+    tailwind: {Tailwind, :install_and_run, [:rumbl, []]}
   ]
 
 # ## SSL Support
@@ -57,13 +57,10 @@ config :rumbl, RumblWeb.Endpoint,
   live_reload: [
     web_console_logger: true,
     patterns: [
-      # Static assets, except user uploads
-      ~r"priv/static/(?!uploads/).*\.(js|css|png|jpeg|jpg|gif|svg)$",
       # Gettext translations
       ~r"priv/gettext/.*\.po$",
-      # Router, Controllers, LiveViews and LiveComponents
-      ~r"lib/rumbl_web/router\.ex$",
-      ~r"lib/rumbl_web/(controllers|live|components)/.*\.(ex|heex)$"
+      # HEEx templates (avoid full-page reload loops from source-file mtime churn)
+      ~r"lib/rumbl_web/(controllers|live|components)/.*\.heex$"
     ]
   ]
 

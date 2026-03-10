@@ -57,16 +57,16 @@ defmodule RumblWeb.Layouts do
       ]}
     >
       <div class="flex-1">
-        <a href="/" class="ml-8 md:ml-16 flex w-fit items-center gap-2 text-white/95">
+        <.link navigate={~p"/"} class="ml-8 md:ml-16 flex w-fit items-center gap-2 text-white/95">
           <img src={~p"/images/logo.png"} alt="Rumbl logo" class="h-[40px] w-auto object-contain" />
           <span class="text-3xl font-extrabold tracking-tight">Rumbl</span>
-        </a>
+        </.link>
       </div>
       <div class="flex-none">
         <ul class="flex flex-column px-1 space-x-4 items-center">
           <%= if @current_user do %>
             <li>
-              <a href="/rings" class="btn btn-ghost">Rings</a>
+              <.link navigate={~p"/rings"} class="btn btn-ghost">Rings</.link>
             </li>
             <li>
               <span class="text-sm">Hello, <strong>{@current_user.name}</strong></span>
@@ -79,10 +79,10 @@ defmodule RumblWeb.Layouts do
             </li>
           <% else %>
             <li>
-              <a href="/sessions/new" class="btn btn-ghost">{gettext("Log in")}</a>
+              <.link navigate={~p"/sessions/new"} class="btn btn-ghost">{gettext("Log in")}</.link>
             </li>
             <li>
-              <a href="/users/new" class="btn btn-primary">{gettext("Register")}</a>
+              <.link navigate={~p"/users/new"} class="btn btn-primary">{gettext("Register")}</.link>
             </li>
           <% end %>
           <li>
