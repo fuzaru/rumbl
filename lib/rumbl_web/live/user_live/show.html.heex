@@ -74,6 +74,22 @@
               </p>
             </div>
           </article>
+
+          <article :if={@is_self} class="rumbl-profile-data-row">
+            <div>
+              <p class="rumbl-profile-data-label">Account</p>
+              <p class="rumbl-profile-data-value">Permanently delete your account</p>
+            </div>
+            <button
+              id="delete-account"
+              type="button"
+              phx-click="delete_account"
+              data-confirm="Delete your account? This cannot be undone."
+              class="rumbl-profile-row-action"
+            >
+              Delete
+            </button>
+          </article>
         </section>
       </article>
     </section>

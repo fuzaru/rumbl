@@ -205,4 +205,28 @@ defmodule RumblWeb.RingLive.IndexTest do
 
     refute has_element?(view, "#ring-delete-trigger")
   end
+
+  test "annotation updates are reflected in another user's ring workspace", %{conn: conn} do
+    owner = user_fixture()
+    member = user_fixture()
+    ring = ring_fixture(owner)
+    {:ok, _membership} = Rings.join_ring_by_invite(member, ring.invite_code)
+    _video = video_fixture(owner, ring)
+
+    owner_conn = log_in_user(conn, owner)
+    member_conn = log_in_user(build_conn(), member)
+
+    {:ok, owner_view, _html} = live(owner_conn, ~p"/rings/#{ring.id}")
+    {:ok, member_view, _html} = live(member_conn, ~p"/rings/#{ring.id}")
+
+    refute has_element?(member_view, "#video-annotations .rumbl-annotation-row")
+
+    owner_view
+    |> form("#annotation-form", %{"annotation" => %{"at" => "0:30", "body" => "sync now"}})
+    |> render_submit()
+
+    _ = :sys.get_state(member_view.pid)
+
+    assert has_element?(member_view, "#video-annotations .rumbl-annotation-row")
+  end
 end

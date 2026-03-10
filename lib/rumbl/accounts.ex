@@ -43,6 +43,8 @@ defmodule Rumbl.Accounts do
   def update_user(%User{} = user, attrs),
     do: user |> User.changeset(attrs) |> Repo.update()
 
+  def delete_user(%User{} = user), do: Repo.delete(user)
+
   def change_user(%User{} = user, attrs \\ %{}), do: User.changeset(user, attrs)
 
   def change_registration(%User{} = user, attrs \\ %{}),

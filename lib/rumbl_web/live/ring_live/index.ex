@@ -1,6 +1,8 @@
 defmodule RumblWeb.RingLive.Index do
   use RumblWeb, :live_view
 
+  alias Phoenix.Socket.Broadcast
+
   alias RumblWeb.RingLive.Index.{
     AnnotationSearch,
     CategoryManagement,
@@ -101,6 +103,14 @@ defmodule RumblWeb.RingLive.Index do
   @impl true
   def handle_info(%Phoenix.Socket.Broadcast{event: "presence_diff", topic: topic}, socket) do
     {:noreply, RingPresence.handle_presence_diff(socket, topic)}
+  end
+
+  @impl true
+  def handle_info(
+        %Broadcast{event: "annotation_changed", payload: %{"video_id" => video_id}},
+        socket
+      ) do
+    {:noreply, VideoState.sync_annotations_from_realtime(socket, video_id)}
   end
 
   @impl true

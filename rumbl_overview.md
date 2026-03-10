@@ -40,8 +40,10 @@ It solves the “scattered feedback” problem for video discussions:
 - Video CRUD scoped to a ring.
 - Category CRUD scoped to a ring.
 - Timestamped annotations (add/search/filter/seek/delete own annotations).
+- Cross-user realtime annotation sync inside ring workspaces (PubSub broadcast + LiveView refresh).
 - Presence indicators (“Active now” online/offline states).
 - Locale switching (`en`, `fil`).
+- Self-service profile management, including account deletion from the profile page.
 
 ---
 
@@ -80,6 +82,7 @@ Rumbl follows standard Phoenix context + web-layer architecture:
 5. Context modules execute Ecto operations via `Rumbl.Repo`.
 6. LiveView updates assigns/streams, pushes events to JS hooks for player interactions.
 7. PubSub + Presence synchronize online activity updates.
+8. Annotation mutations broadcast `annotation_changed` on ring topic; other connected sessions refresh the active video annotations in realtime.
 
 ### Design patterns used
 
@@ -154,9 +157,10 @@ Rumbl follows standard Phoenix context + web-layer architecture:
 1. User submits annotation form (`phx-submit="add_annotation"`).
 2. `VideoLive.Index.dispatch_event/4` delegates to `Watch.add_annotation/3`.
 3. `Multimedia.annotate_video/3` inserts annotation.
-4. LiveView refreshes annotations and assigns.
-5. Timeline marker click sends `select_annotation_from_timeline`; server pushes `seek_video` event.
-6. JS hook `YouTubeSeek` receives event and calls YouTube player `seekTo`.
+4. `VideoLive.Index` broadcasts `annotation_changed` to the ring PubSub topic.
+5. Other connected sessions handling the same video receive the broadcast and refresh annotations immediately.
+6. Timeline marker click sends `select_annotation_from_timeline`; server pushes `seek_video` event.
+7. JS hook `YouTubeSeek` receives event and calls YouTube player `seekTo`.
 
 ## Flow D: Invite user to ring
 
@@ -188,16 +192,19 @@ Rumbl follows standard Phoenix context + web-layer architecture:
 | `Multimedia.create_video/2`                    | user, video params             | insert result                      | Associates user and validates URL/ring/category constraints.             |
 | `Multimedia.search_videos_for_rings/3`         | ring_ids, query                | list of videos                     | Cross-ring search in global panel modal context.                         |
 | `Multimedia.annotate_video/3`                  | user, video_id, attrs          | insert result                      | Persists timestamped annotation.                                         |
+| `Accounts.delete_user/1`                       | user struct                    | delete result                      | Deletes current user account (self-service from profile flow).           |
 
 ## LiveView orchestration layer
 
-| Module / Function                    | What it does                                                                                        |
-| ------------------------------------ | --------------------------------------------------------------------------------------------------- |
-| `RingLive.Index.handle_event/3`      | Large event router for panel switches, modals, invitation actions, and passthrough video events.    |
-| `VideoLive.Index.dispatch_event/4`   | Detailed handler set for video CRUD, annotation operations, timeline controls, and modal lifecycle. |
-| `RingPresence.sync_presence_topic/1` | Manages PubSub subscriptions and Presence tracking/untracking per selected ring/global view.        |
-| `PanelSearch.search/2`               | Handles modal query state and ring/video search results assignment.                                 |
-| `AnnotationSearch.select_result/3`   | Opens target video, sets selected annotation, and pushes seek event to player.                      |
+| Module / Function                                  | What it does                                                                                        |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `RingLive.Index.handle_event/3`                    | Large event router for panel switches, modals, invitation actions, and passthrough video events.    |
+| `VideoLive.Index.dispatch_event/4`                 | Detailed handler set for video CRUD, annotation operations, timeline controls, and modal lifecycle. |
+| `VideoLive.Index.broadcast_annotation_changed/1`   | Publishes annotation updates to ring PubSub topic so other sessions can refresh in realtime.        |
+| `VideoLive.Index.sync_annotations_from_realtime/2` | Refreshes annotations only when the same video is currently selected (minimal/YAGNI-safe behavior). |
+| `RingPresence.sync_presence_topic/1`               | Manages PubSub subscriptions and Presence tracking/untracking per selected ring/global view.        |
+| `PanelSearch.search/2`                             | Handles modal query state and ring/video search results assignment.                                 |
+| `AnnotationSearch.select_result/3`                 | Opens target video, sets selected annotation, and pushes seek event to player.                      |
 
 ## Client hooks (`assets/js/app.js`)
 
@@ -315,7 +322,7 @@ Rumbl follows standard Phoenix context + web-layer architecture:
 | Why LiveView instead of SPA + API?                    | Most interactions are server-driven realtime UI with minimal JS; this keeps state centralized and reduces frontend API surface area.                           |
 | How does video seeking work?                          | Server emits `seek_video` events; `YouTubeSeek` hook invokes the IFrame player API.                                                                            |
 | What’s most complex area?                             | `RingLive.Index` event orchestration + cross-module state coordination (presence, modals, searches, video actions).                                            |
-| Is there real-time collaboration?                     | Yes: presence tracking and pubsub updates for online activity; annotation interactions are immediate via LiveView state updates.                               |
+| Is there real-time collaboration?                     | Yes: presence tracking is realtime, and annotations now propagate cross-user via PubSub `annotation_changed` broadcasts and selective LiveView refresh.        |
 
 ## 1-minute explanation
 
@@ -327,9 +334,10 @@ Rumbl follows standard Phoenix context + web-layer architecture:
 2. **Core UX:** rings (group workspaces), categories, videos, annotation timeline, invite workflows.
 3. **Architecture:** contexts (`Accounts`, `Rings`, `Multimedia`) + LiveView orchestration + Ecto/Postgres persistence.
 4. **Realtime aspect:** Presence/PubSub for active user indicators; LiveView events for immediate UI updates.
-5. **Frontend bridge:** custom hooks handle YouTube seek + rich interactions while keeping most state on server.
-6. **Operational readiness:** environment-driven config, migrations, automated test support and `mix precommit`.
-7. **Current caveats:** a few maintenance risks (seed script mismatch, ring_id typing, large orchestrator module).
+5. **Realtime annotations:** add/delete annotation events publish to ring topic, and other users in that ring see updates without refresh.
+6. **Frontend bridge:** custom hooks handle YouTube seek + rich interactions while keeping most state on server.
+7. **Operational readiness:** environment-driven config, migrations, automated test support and `mix precommit`.
+8. **Current caveats:** a few maintenance risks (seed script mismatch, ring_id typing, large orchestrator module).
 
 ---
 
@@ -385,8 +393,9 @@ Before presenting, the most important things to understand are:
 1. Rumbl is a **ring-scoped collaborative video annotation** platform, not just a CRUD app.
 2. The app’s center of gravity is the **LiveView orchestration** (`RingLive.Index` + `VideoLive.Index`) backed by clear contexts (`Accounts`, `Rings`, `Multimedia`).
 3. Realtime collaboration is achieved via **LiveView events + Presence/PubSub + targeted JS hooks** for YouTube control.
-4. The data model is straightforward but has **evolution complexity** around ring scoping and category/video linkage.
-5. Your strongest narrative is product → architecture → realtime interactions → data model → known risks.
+4. Annotation updates are now **cross-user realtime** in ring workspaces via PubSub broadcast and targeted annotation refresh.
+5. The data model is straightforward but has **evolution complexity** around ring scoping and category/video linkage.
+6. Your strongest narrative is product → architecture → realtime interactions → data model → known risks.
 
 ---
 
@@ -396,6 +405,7 @@ Before presenting, the most important things to understand are:
 
 - “Rumbl organizes collaboration into rings (workspaces).”
 - “Users annotate videos at exact timestamps for contextual feedback.”
+- “Annotation add/delete now syncs live across users in the same ring.”
 - “LiveView keeps most state server-side, reducing frontend complexity.”
 - “Presence shows active users in real time.”
 - “Ring/invitation workflows enforce group-based access control.”

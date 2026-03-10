@@ -1,6 +1,7 @@
 defmodule RumblWeb.VideoLive.Index do
   use RumblWeb, :live_view
 
+  alias Phoenix.Socket.Broadcast
   alias Rumbl.Multimedia
   alias Rumbl.Rings
   alias RumblWeb.RingLive.Index.RingPresence
@@ -44,6 +45,14 @@ defmodule RumblWeb.VideoLive.Index do
     else
       {:noreply, socket}
     end
+  end
+
+  @impl true
+  def handle_info(
+        %Broadcast{event: "annotation_changed", payload: %{"video_id" => video_id}},
+        socket
+      ) do
+    {:noreply, sync_annotations_from_realtime(socket, video_id)}
   end
 
   @impl true
@@ -140,8 +149,14 @@ defmodule RumblWeb.VideoLive.Index do
     at = Map.get(annotation_params, "at", "")
 
     case Watch.add_annotation(socket, at, body) do
-      {:ok, socket} -> {:noreply, socket |> assign_annotations()}
-      {:error, socket} -> {:noreply, socket}
+      {:ok, socket} ->
+        {:noreply,
+         socket
+         |> assign_annotations()
+         |> broadcast_annotation_changed()}
+
+      {:error, socket} ->
+        {:noreply, socket}
     end
   end
 
@@ -211,6 +226,7 @@ defmodule RumblWeb.VideoLive.Index do
       {:noreply,
        socket
        |> assign_annotations()
+       |> broadcast_annotation_changed()
        |> Phoenix.LiveView.put_flash(:info, "Annotation removed")}
     else
       false ->
@@ -326,6 +342,16 @@ defmodule RumblWeb.VideoLive.Index do
     end
   end
 
+  def sync_annotations_from_realtime(socket, video_id) when is_integer(video_id) do
+    if socket.assigns[:selected_video] && socket.assigns.selected_video.id == video_id do
+      assign_annotations(socket)
+    else
+      socket
+    end
+  end
+
+  def sync_annotations_from_realtime(socket, _video_id), do: socket
+
   defp apply_videos_query_params(socket, params, rings) do
     cond do
       params["modal"] == "new" ->
@@ -396,5 +422,19 @@ defmodule RumblWeb.VideoLive.Index do
       {milliseconds, ""} when milliseconds >= 0 -> {:ok, milliseconds, div(milliseconds, 1000)}
       _ -> :error
     end
+  end
+
+  defp broadcast_annotation_changed(socket) do
+    with %{selected_video: %{id: video_id, ring_id: ring_id}} <- socket.assigns,
+         true <- is_integer(video_id),
+         true <- is_binary(ring_id) do
+      Phoenix.PubSub.broadcast(
+        Rumbl.PubSub,
+        "ring_presence:#{ring_id}",
+        %Broadcast{event: "annotation_changed", payload: %{"video_id" => video_id}}
+      )
+    end
+
+    socket
   end
 end

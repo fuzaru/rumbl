@@ -99,6 +99,23 @@ defmodule RumblWeb.UserLive.Show do
     end
   end
 
+  def handle_event("delete_account", _params, socket) do
+    if socket.assigns.is_self do
+      case Accounts.delete_user(socket.assigns.user) do
+        {:ok, _user} ->
+          {:noreply,
+           socket
+           |> put_flash(:info, "Account deleted successfully.")
+           |> push_navigate(to: ~p"/")}
+
+        {:error, _changeset} ->
+          {:noreply, put_flash(socket, :error, "Could not delete account.")}
+      end
+    else
+      {:noreply, put_flash(socket, :error, "You can only edit your own profile.")}
+    end
+  end
+
   defp assign_profile_edit_state(socket, user) do
     socket
     |> assign(:profile_edit_modal_open, false)
