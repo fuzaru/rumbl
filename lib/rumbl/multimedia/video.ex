@@ -55,7 +55,8 @@ defmodule Rumbl.Multimedia.Video do
       title
       |> slugify_title()
       |> add_random_suffix()
-      |> put_change(changeset, :slug, slug)
+
+    put_change(changeset, :slug, slug)
   end
 
   defp put_slug(changeset), do: changeset
