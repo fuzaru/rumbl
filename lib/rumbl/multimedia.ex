@@ -4,9 +4,7 @@ defmodule Rumbl.Multimedia do
   alias Rumbl.Accounts.User
   alias Rumbl.Multimedia.{Video, Category, Annotation}
 
-  # ============================================================================
   # Videos
-  # ============================================================================
 
   def list_videos, do: Repo.all(Video) |> Repo.preload([:user, :category])
 
