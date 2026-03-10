@@ -25,8 +25,8 @@ defmodule RumblWeb.Locale do
     |> assign(:locale, locale)
   end
 
-  def from_session(session) when is_map(session) do
-    normalize_locale(Map.get(session, "locale") || Map.get(session, :locale))
+  def from_session(%{} = session) do
+    normalize_locale(session["locale"] || session[:locale])
   end
 
   defp current_locale(conn) do

@@ -13,12 +13,8 @@ defmodule RumblWeb.LocaleController do
   defp redirect_path_from_referer(nil), do: ~p"/"
 
   defp redirect_path_from_referer(referer) do
-    uri = URI.parse(referer)
-    path = uri.path || "/"
-
-    case uri.query do
-      nil -> path
-      query -> path <> "?" <> query
-    end
+    %URI{path: path, query: query} = URI.parse(referer)
+    base = path || "/"
+    if query, do: base <> "?" <> query, else: base
   end
 end

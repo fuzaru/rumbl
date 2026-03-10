@@ -2,6 +2,8 @@ defmodule Rumbl.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @username_format ~r/^[a-zA-Z0-9_]+$/
+
   schema "users" do
     field :name, :string
     field :username, :string
@@ -14,35 +16,27 @@ defmodule Rumbl.Accounts.User do
     timestamps()
   end
 
-  @doc """
-  Changeset for user updates (no password).
-  """
   def changeset(user, attrs) do
     user
     |> cast(attrs, [:name, :username])
     |> validate_required([:name, :username])
     |> validate_length(:username, min: 3, max: 20)
-    |> validate_format(:username, ~r/^[a-zA-Z0-9_]+$/, message: "must be alphanumeric")
+    |> validate_format(:username, @username_format, message: "must be alphanumeric")
     |> unique_constraint(:username)
   end
 
-  @doc """
-  Changeset for user registration (includes password).
-  """
   def registration_changeset(user, attrs) do
     user
     |> changeset(attrs)
     |> cast(attrs, [:password])
     |> validate_required([:password])
     |> validate_length(:password, min: 6, max: 100)
-    |> put_password_hash()
-  end
+    |> then(fn
+      %{valid?: true, changes: %{password: pw}} = cs ->
+        put_change(cs, :password_hash, Bcrypt.hash_pwd_salt(pw))
 
-  defp put_password_hash(
-         %Ecto.Changeset{valid?: true, changes: %{password: password}} = changeset
-       ) do
-    put_change(changeset, :password_hash, Bcrypt.hash_pwd_salt(password))
+      cs ->
+        cs
+    end)
   end
-
-  defp put_password_hash(changeset), do: changeset
 end

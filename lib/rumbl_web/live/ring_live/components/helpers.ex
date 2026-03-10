@@ -38,27 +38,21 @@ defmodule RumblWeb.RingLive.Components.Helpers do
   end
 
   def ring_name_by_id(rings, ring_id) do
-    case Enum.find(rings, &(&1.id == ring_id)) do
-      nil -> "Unknown Ring"
-      ring -> ring.name
-    end
+    Enum.find_value(rings, "Unknown Ring", fn
+      %{id: ^ring_id, name: name} -> name
+      _ -> nil
+    end)
   end
 
   def short_annotation_preview(text, max_length \\ 80)
 
   def short_annotation_preview(text, max_length)
       when is_binary(text) and is_integer(max_length) and max_length > 0 do
-    text
-    |> String.trim()
-    |> String.replace(~r/\s+/, " ")
-    |> String.slice(0, max_length)
-    |> then(fn preview ->
-      if String.length(text) > max_length do
-        preview <> "…"
-      else
-        preview
-      end
-    end)
+    normalized = text |> String.trim() |> String.replace(~r/\s+/, " ")
+
+    if String.length(normalized) > max_length,
+      do: String.slice(normalized, 0, max_length) <> "\u2026",
+      else: normalized
   end
 
   def short_annotation_preview(_text, _max_length), do: ""

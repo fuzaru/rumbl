@@ -123,19 +123,18 @@ defmodule RumblWeb.RingLive.Index.Invitations do
       []
     else
       ring_id = socket.assigns.selected_invite_ring_id
-      members = Rings.list_ring_members(ring_id)
-      member_ids = Enum.map(members, & &1.id)
-      pending_invites = Rings.list_pending_invites_for_ring(ring_id)
-      pending_invitee_ids = Enum.map(pending_invites, & &1.invitee_id)
 
-      excluded_ids = [socket.assigns.current_user.id | member_ids ++ pending_invitee_ids]
+      excluded_ids =
+        [socket.assigns.current_user.id] ++
+          Enum.map(Rings.list_ring_members(ring_id), & &1.id) ++
+          Enum.map(Rings.list_pending_invites_for_ring(ring_id), & &1.invitee_id)
 
       Accounts.search_users(trimmed_query, exclude_ids: excluded_ids)
     end
   end
 
+  defp default_invite_ring_id([%{id: id} | _]), do: id
   defp default_invite_ring_id([]), do: nil
-  defp default_invite_ring_id([ring | _]), do: ring.id
 
   defp ensure_selected_invite_ring_id(nil, owned_rings), do: default_invite_ring_id(owned_rings)
 

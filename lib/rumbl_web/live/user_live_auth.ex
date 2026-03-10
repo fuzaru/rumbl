@@ -34,13 +34,15 @@ defmodule RumblWeb.UserLiveAuth do
     end
   end
 
-  defp get_user_from_session(%{"user_id" => user_id}), do: Accounts.get_user(user_id)
-  defp get_user_from_session(_session), do: nil
-
   defp assign_session_context(socket, session, locale) do
     socket
     |> assign_new(:locale, fn -> locale end)
     |> assign_new(:current_scope, fn -> nil end)
-    |> assign_new(:current_user, fn -> get_user_from_session(session) end)
+    |> assign_new(:current_user, fn ->
+      case session do
+        %{"user_id" => id} -> Accounts.get_user(id)
+        _ -> nil
+      end
+    end)
   end
 end

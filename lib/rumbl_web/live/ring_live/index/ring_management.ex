@@ -30,11 +30,7 @@ defmodule RumblWeb.RingLive.Index.RingManagement do
   def close_new_modal(socket), do: assign(socket, :new_ring_modal_open, false)
 
   def validate_new_modal(socket, ring_params) do
-    changeset =
-      ring_params
-      |> ring_changeset()
-      |> Map.put(:action, :validate)
-
+    changeset = ring_params |> ring_changeset() |> Map.put(:action, :validate)
     assign(socket, :new_ring_form, to_form(changeset, as: :ring))
   end
 
@@ -51,7 +47,7 @@ defmodule RumblWeb.RingLive.Index.RingManagement do
            |> Phoenix.LiveView.put_flash(:info, "Ring created. Invite code: #{ring.invite_code}")
            |> Phoenix.LiveView.push_navigate(to: "/rings/#{ring.id}")}
 
-        {:error, _changeset} ->
+        {:error, _} ->
           {:noreply,
            socket
            |> Phoenix.LiveView.put_flash(:error, "Could not create ring. Please try again.")
@@ -59,11 +55,7 @@ defmodule RumblWeb.RingLive.Index.RingManagement do
       end
     else
       {:noreply,
-       assign(
-         socket,
-         :new_ring_form,
-         to_form(Map.put(changeset, :action, :validate), as: :ring)
-       )}
+       assign(socket, :new_ring_form, to_form(%{changeset | action: :validate}, as: :ring))}
     end
   end
 
@@ -76,11 +68,7 @@ defmodule RumblWeb.RingLive.Index.RingManagement do
   def close_join_modal(socket), do: assign(socket, :join_ring_modal_open, false)
 
   def validate_join_modal(socket, join_params) do
-    changeset =
-      join_params
-      |> join_ring_changeset()
-      |> Map.put(:action, :validate)
-
+    changeset = join_params |> join_ring_changeset() |> Map.put(:action, :validate)
     assign(socket, :join_ring_form, to_form(changeset, as: :join_ring))
   end
 

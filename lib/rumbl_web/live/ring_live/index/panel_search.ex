@@ -22,15 +22,10 @@ defmodule RumblWeb.RingLive.Index.PanelSearch do
   end
 
   def open_video_result(socket, video_slug, rings) do
-    {:noreply, updated_socket} =
-      VideoState.dispatch_event(
-        "open_video",
-        %{"video_slug" => video_slug},
-        socket,
-        rings
-      )
+    {:noreply, socket} =
+      VideoState.dispatch_event("open_video", %{"video_slug" => video_slug}, socket, rings)
 
-    assign(updated_socket, :panel_search_modal_open, false)
+    assign(socket, :panel_search_modal_open, false)
   end
 
   defp search_global_catalog_videos(socket, query) do

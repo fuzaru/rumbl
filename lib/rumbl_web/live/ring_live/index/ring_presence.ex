@@ -6,13 +6,10 @@ defmodule RumblWeb.RingLive.Index.RingPresence do
   alias RumblWeb.Presence
 
   def refresh_ring_members(socket) do
-    ring = socket.assigns.selected_ring
+    members =
+      if ring = socket.assigns.selected_ring, do: Rings.list_ring_members(ring.id), else: []
 
-    if ring do
-      assign(socket, :ring_members, Rings.list_ring_members(ring.id))
-    else
-      assign(socket, :ring_members, [])
-    end
+    assign(socket, :ring_members, members)
   end
 
   def sync_presence_topic(socket) do
@@ -24,42 +21,32 @@ defmodule RumblWeb.RingLive.Index.RingPresence do
       if ring do
         MapSet.new([next_tracked_topic])
       else
-        socket.assigns.rings
-        |> Enum.map(&ring_presence_topic(&1.id))
-        |> MapSet.new()
+        socket.assigns.rings |> Enum.map(&ring_presence_topic(&1.id)) |> MapSet.new()
       end
-
-    current_subscriptions = socket.assigns.presence_subscriptions
 
     socket =
       if Phoenix.LiveView.connected?(socket) do
-        subscriptions_to_remove = MapSet.difference(current_subscriptions, desired_subscriptions)
-        subscriptions_to_add = MapSet.difference(desired_subscriptions, current_subscriptions)
+        current_subs = socket.assigns.presence_subscriptions
 
-        Enum.each(subscriptions_to_remove, fn topic ->
-          Phoenix.PubSub.unsubscribe(Rumbl.PubSub, topic)
-        end)
+        current_subs
+        |> MapSet.difference(desired_subscriptions)
+        |> Enum.each(&Phoenix.PubSub.unsubscribe(Rumbl.PubSub, &1))
 
-        Enum.each(subscriptions_to_add, fn topic ->
-          Phoenix.PubSub.subscribe(Rumbl.PubSub, topic)
-        end)
+        desired_subscriptions
+        |> MapSet.difference(current_subs)
+        |> Enum.each(&Phoenix.PubSub.subscribe(Rumbl.PubSub, &1))
+
+        key = presence_key(socket.assigns.current_user.id)
 
         if previous_tracked_topic && previous_tracked_topic != next_tracked_topic do
-          Presence.untrack(
-            self(),
-            previous_tracked_topic,
-            presence_key(socket.assigns.current_user.id)
-          )
+          Presence.untrack(self(), previous_tracked_topic, key)
         end
 
         if next_tracked_topic && previous_tracked_topic != next_tracked_topic do
-          {:ok, _meta} =
-            Presence.track(
-              self(),
-              next_tracked_topic,
-              presence_key(socket.assigns.current_user.id),
-              %{online_at: System.system_time(:second)}
-            )
+          {:ok, _} =
+            Presence.track(self(), next_tracked_topic, key, %{
+              online_at: System.system_time(:second)
+            })
         end
 
         socket
@@ -71,11 +58,7 @@ defmodule RumblWeb.RingLive.Index.RingPresence do
       if next_tracked_topic, do: online_member_ids(next_tracked_topic), else: MapSet.new()
 
     active_ring_users =
-      if ring do
-        []
-      else
-        active_users_for_rings(socket.assigns.rings)
-      end
+      if ring, do: [], else: active_users_for_rings(socket.assigns.rings)
 
     socket
     |> assign(:presence_topic, next_tracked_topic)
@@ -107,18 +90,16 @@ defmodule RumblWeb.RingLive.Index.RingPresence do
   end
 
   def active_users_for_rings(rings) when is_list(rings) do
-    ring_names_by_id = Map.new(rings, fn ring -> {ring.id, ring.name} end)
+    ring_names = Map.new(rings, &{&1.id, &1.name})
 
-    ring_membership_by_user_id =
+    ring_membership =
       Enum.reduce(rings, %{}, fn ring, acc ->
-        topic = ring_presence_topic(ring.id)
-        ring_name = Map.fetch!(ring_names_by_id, ring.id)
+        ring_name = Map.fetch!(ring_names, ring.id)
 
-        Presence.list(topic)
-        |> Enum.reduce(acc, fn {key, _details}, user_acc ->
+        Enum.reduce(Presence.list(ring_presence_topic(ring.id)), acc, fn {key, _}, user_acc ->
           case parse_presence_key(key) do
-            {:ok, user_id} ->
-              Map.update(user_acc, user_id, MapSet.new([ring_name]), &MapSet.put(&1, ring_name))
+            {:ok, uid} ->
+              Map.update(user_acc, uid, MapSet.new([ring_name]), &MapSet.put(&1, ring_name))
 
             :error ->
               user_acc
@@ -126,15 +107,15 @@ defmodule RumblWeb.RingLive.Index.RingPresence do
         end)
       end)
 
-    user_ids = Map.keys(ring_membership_by_user_id)
-
     users_by_id =
-      Accounts.list_users_by_ids(user_ids)
-      |> Map.new(fn user -> {user.id, user} end)
+      ring_membership
+      |> Map.keys()
+      |> Accounts.list_users_by_ids()
+      |> Map.new(&{&1.id, &1})
 
-    ring_membership_by_user_id
-    |> Enum.flat_map(fn {user_id, user_rings} ->
-      case Map.get(users_by_id, user_id) do
+    ring_membership
+    |> Enum.flat_map(fn {uid, user_rings} ->
+      case Map.get(users_by_id, uid) do
         nil ->
           []
 
@@ -153,18 +134,15 @@ defmodule RumblWeb.RingLive.Index.RingPresence do
   end
 
   defp online_member_ids(topic) do
-    Presence.list(topic)
-    |> Enum.reduce(MapSet.new(), fn {key, _details}, acc ->
-      case parse_presence_key(key) do
-        {:ok, user_id} -> MapSet.put(acc, user_id)
-        :error -> acc
-      end
-    end)
+    for {key, _} <- Presence.list(topic),
+        {:ok, uid} <- [parse_presence_key(key)],
+        into: MapSet.new(),
+        do: uid
   end
 
   defp parse_presence_key("user:" <> id) do
     case Integer.parse(id) do
-      {user_id, ""} -> {:ok, user_id}
+      {uid, ""} -> {:ok, uid}
       _ -> :error
     end
   end

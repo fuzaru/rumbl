@@ -50,7 +50,7 @@ defmodule RumblWeb.RingLive.Index.CategoryManagement do
            assign(
              socket,
              :create_category_form,
-             to_form(Map.put(create_changeset, :action, :validate), as: :category)
+             to_form(%{create_changeset | action: :validate}, as: :category)
            )}
       end
     else
@@ -58,7 +58,7 @@ defmodule RumblWeb.RingLive.Index.CategoryManagement do
        assign(
          socket,
          :create_category_form,
-         to_form(Map.put(changeset, :action, :validate), as: :category)
+         to_form(%{changeset | action: :validate}, as: :category)
        )}
     end
   end
@@ -88,15 +88,11 @@ defmodule RumblWeb.RingLive.Index.CategoryManagement do
     )
   end
 
-  def delete_selected_category(socket, %{"category_id" => category_id}) do
-    case category_id do
-      "" ->
-        {:noreply, Phoenix.LiveView.put_flash(socket, :error, "Choose a category to delete.")}
+  def delete_selected_category(socket, %{"category_id" => ""}),
+    do: {:noreply, Phoenix.LiveView.put_flash(socket, :error, "Choose a category to delete.")}
 
-      _ ->
-        delete_category(socket, category_id)
-    end
-  end
+  def delete_selected_category(socket, %{"category_id" => category_id}),
+    do: delete_category(socket, category_id)
 
   def delete_category(socket, category_id) do
     ring_id = socket.assigns.selected_ring.id

@@ -5,6 +5,11 @@ defmodule Rumbl.Multimedia.Video do
   alias Rumbl.Accounts.User
   alias Rumbl.Multimedia.{Category, Annotation}
 
+  # Regexes compiled once at module load
+  @slug_strip ~r/[^\w\s-]/
+  @slug_spaces ~r/\s+/
+  @youtube_re ~r{(?:youtube\.com/watch\?v=|youtu\.be/)([^&#?\s]+)}
+
   @derive {Phoenix.Param, key: :slug}
 
   schema "videos" do
@@ -25,45 +30,34 @@ defmodule Rumbl.Multimedia.Video do
     video
     |> cast(attrs, [:title, :url, :description, :category_id, :ring_id])
     |> validate_required([:title, :url, :ring_id])
-    |> validate_url(:url)
+    |> validate_change(:url, fn _, url ->
+      case URI.parse(url) do
+        %URI{scheme: s, host: h} when s in ["http", "https"] and not is_nil(h) -> []
+        _ -> [{:url, "must be a valid URL"}]
+      end
+    end)
     |> assoc_constraint(:user)
     |> assoc_constraint(:category)
-    |> slugify_title()
+    |> then(fn
+      %{valid?: true, changes: %{title: title}} = cs ->
+        slug =
+          title
+          |> String.downcase()
+          |> String.replace(@slug_strip, "")
+          |> String.replace(@slug_spaces, "-")
+          |> String.trim("-")
+
+        # Add random suffix for uniqueness
+        put_change(cs, :slug, "#{slug}-#{:rand.uniform(9999)}")
+
+      cs ->
+        cs
+    end)
     |> unique_constraint(:slug)
   end
 
-  defp validate_url(changeset, field) do
-    validate_change(changeset, field, fn _, url ->
-      case URI.parse(url) do
-        %URI{scheme: scheme, host: host} when scheme in ["http", "https"] and not is_nil(host) ->
-          []
-
-        _ ->
-          [{field, "must be a valid URL"}]
-      end
-    end)
-  end
-
-  defp slugify_title(%Ecto.Changeset{valid?: true, changes: %{title: title}} = changeset) do
-    slug =
-      title
-      |> String.downcase()
-      |> String.replace(~r/[^\w\s-]/, "")
-      |> String.replace(~r/\s+/, "-")
-      |> String.trim("-")
-
-    # Add random suffix for uniqueness
-    slug = "#{slug}-#{:rand.uniform(9999)}"
-    put_change(changeset, :slug, slug)
-  end
-
-  defp slugify_title(changeset), do: changeset
-
-  @doc """
-  Extracts YouTube video ID from URL.
-  """
   def youtube_id(%__MODULE__{url: url}) do
-    case Regex.run(~r{(?:youtube\.com/watch\?v=|youtu\.be/)([^&#?\s]+)}, url || "") do
+    case Regex.run(@youtube_re, url || "") do
       [_, id] -> id
       _ -> nil
     end
