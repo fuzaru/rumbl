@@ -217,7 +217,6 @@ defmodule Rumbl.Rings do
     end
   end
 
-  # Retry on (vanishingly rare) collision
   defp generate_invite_code do
     code = for(_ <- 1..8, into: "", do: <<Enum.random(@invite_alphabet)>>)
 

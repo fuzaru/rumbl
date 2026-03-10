@@ -5,7 +5,6 @@ defmodule Rumbl.Multimedia.Video do
   alias Rumbl.Accounts.User
   alias Rumbl.Multimedia.{Category, Annotation}
 
-  # Regexes compiled once at module load
   @slug_strip ~r/[^\w\s-]/
   @slug_spaces ~r/\s+/
   @youtube_re ~r{(?:youtube\.com/watch\?v=|youtu\.be/)([^&#?\s]+)}
@@ -30,29 +29,10 @@ defmodule Rumbl.Multimedia.Video do
     video
     |> cast(attrs, [:title, :url, :description, :category_id, :ring_id])
     |> validate_required([:title, :url, :ring_id])
-    |> validate_change(:url, fn _, url ->
-      case URI.parse(url) do
-        %URI{scheme: s, host: h} when s in ["http", "https"] and not is_nil(h) -> []
-        _ -> [{:url, "must be a valid URL"}]
-      end
-    end)
+    |> validate_change(:url, &validate_url/2)
     |> assoc_constraint(:user)
     |> assoc_constraint(:category)
-    |> then(fn
-      %{valid?: true, changes: %{title: title}} = cs ->
-        slug =
-          title
-          |> String.downcase()
-          |> String.replace(@slug_strip, "")
-          |> String.replace(@slug_spaces, "-")
-          |> String.trim("-")
-
-        # Add random suffix for uniqueness
-        put_change(cs, :slug, "#{slug}-#{:rand.uniform(9999)}")
-
-      cs ->
-        cs
-    end)
+    |> put_slug()
     |> unique_constraint(:slug)
   end
 
@@ -62,4 +42,31 @@ defmodule Rumbl.Multimedia.Video do
       _ -> nil
     end
   end
+
+  defp validate_url(_, url) do
+    case URI.parse(url) do
+      %URI{scheme: scheme, host: host} when scheme in ["http", "https"] and not is_nil(host) -> []
+      _ -> [url: "must be a valid URL"]
+    end
+  end
+
+  defp put_slug(%Ecto.Changeset{valid?: true, changes: %{title: title}} = changeset) do
+    slug =
+      title
+      |> slugify_title()
+      |> add_random_suffix()
+      |> put_change(changeset, :slug, slug)
+  end
+
+  defp put_slug(changeset), do: changeset
+
+  defp slugify_title(title) do
+    title
+    |> String.downcase()
+    |> String.replace(@slug_strip, "")
+    |> String.replace(@slug_spaces, "-")
+    |> String.trim("-")
+  end
+
+  defp add_random_suffix(slug), do: "#{slug}-#{:rand.uniform(9999)}"
 end

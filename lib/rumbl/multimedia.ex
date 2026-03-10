@@ -61,9 +61,7 @@ defmodule Rumbl.Multimedia do
   defp user_videos_query(query, %User{id: user_id}),
     do: from(v in query, where: v.user_id == ^user_id)
 
-  # ============================================================================
   # Categories
-  # ============================================================================
 
   def list_categories_for_ring(ring_id) when is_binary(ring_id) do
     case Ecto.UUID.cast(ring_id) do
@@ -80,8 +78,13 @@ defmodule Rumbl.Multimedia do
 
   def list_categories_for_ring(_ring_id), do: []
 
-  def category_options(ring_id) when is_binary(ring_id),
-    do: ring_id |> list_categories_for_ring() |> Enum.map(&{&1.name, &1.id})
+  def category_options(ring_id) when is_binary(ring_id) do
+    categories = list_categories_for_ring(ring_id)
+
+    Enum.map(categories, fn category ->
+      {category.name, category.id}
+    end)
+  end
 
   def category_options(_ring_id), do: []
 
@@ -98,9 +101,7 @@ defmodule Rumbl.Multimedia do
 
   def delete_category(%Category{} = category), do: Repo.delete(category)
 
-  # ============================================================================
   # Annotations
-  # ============================================================================
 
   def list_annotations(%Video{} = video) do
     from(a in Annotation, where: a.video_id == ^video.id, order_by: [asc: a.at], preload: :user)

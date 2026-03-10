@@ -8,28 +8,31 @@ defmodule Rumbl.Accounts do
   def get_user_by(attrs), do: Repo.get_by(User, attrs)
 
   def search_users(query, opts \\ []) do
-    case query |> to_string() |> String.trim() do
-      "" ->
-        []
+    trimmed_query =
+      query
+      |> to_string()
+      |> String.trim()
 
-      term ->
-        excluded_ids = Keyword.get(opts, :exclude_ids, [])
-        pattern = "%#{term}%"
+    if trimmed_query == "" do
+      []
+    else
+      excluded_ids = Keyword.get(opts, :exclude_ids, [])
+      pattern = "%#{trimmed_query}%"
+      limit = Keyword.get(opts, :limit, 8)
 
-        q =
-          from(u in User,
-            where: ilike(u.username, ^pattern) or ilike(u.name, ^pattern),
-            order_by: [asc: u.username],
-            limit: ^Keyword.get(opts, :limit, 8)
-          )
-
-        q =
-          if excluded_ids == [],
-            do: q,
-            else: from(u in q, where: u.id not in ^excluded_ids)
-
-        Repo.all(q)
+      User
+      |> where([u], ilike(u.username, ^pattern) or ilike(u.name, ^pattern))
+      |> order_by([u], asc: u.username)
+      |> limit(^limit)
+      |> maybe_exclude_ids(excluded_ids)
+      |> Repo.all()
     end
+  end
+
+  defp maybe_exclude_ids(query, []), do: query
+
+  defp maybe_exclude_ids(query, excluded_ids) do
+    where(query, [u], u.id not in ^excluded_ids)
   end
 
   def list_users_by_ids([]), do: []
@@ -61,7 +64,6 @@ defmodule Rumbl.Accounts do
         {:error, :unauthorized}
 
       true ->
-        # Prevent timing attacks
         Bcrypt.no_user_verify()
         {:error, :not_found}
     end
